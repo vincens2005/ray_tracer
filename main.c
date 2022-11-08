@@ -3,7 +3,19 @@
 #include "include/raymath.h"
 #include "include/utils.h"
 
+bool hit_sphere(const Vector3 center, double radius, const Ray r) {
+	Vector3 oc = Vector3Subtract(r.position, center);
+	float a = dot(r.direction, r.direction);
+	float b = 2.0 * dot(oc, r.direction);
+	float c = dot(oc, oc) - radius * radius;
+	float discrimminant = b*b - 4*a*c;
+	return (discrimminant > 0);
+}
+
 Vector3 ray_color(Ray r) {
+	if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
+		return color(1, 0, 0);
+	}
 	Vector3 unit_direction = UnitVector(r.direction);
 	double t = 0.5 * (unit_direction.y + 1.0f);
 	return Vector3Add(Vector3Scale(Vector3One(), 1.0f - t), Vector3Scale(color(0.5, 0.7, 1.0), t));

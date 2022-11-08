@@ -4,6 +4,7 @@
 #define color(r,g,b) ((Vector3){r,g,b})
 #define vec3(x,y,z) ((Vector3){x,y,z})
 #define point3(x,y,z) ((Vector3){x,y,z})
+#define dot(a,b) (Vector3DotProduct(a,b))
 
 Vector3 Ray_at(Ray r, double t) {
 	return Vector3Add(r.position, Vector3Scale(r.direction, t));
