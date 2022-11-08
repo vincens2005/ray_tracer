@@ -1,23 +1,30 @@
 #include <stdio.h>
+#include <math.h>
 #include "include/raylib.h"
 #include "include/raymath.h"
 #include "include/utils.h"
 
-bool hit_sphere(const Vector3 center, double radius, const Ray r) {
+double hit_sphere(const Vector3 center, double radius, const Ray r) {
 	Vector3 oc = Vector3Subtract(r.position, center);
-	float a = dot(r.direction, r.direction);
-	float b = 2.0 * dot(oc, r.direction);
-	float c = dot(oc, oc) - radius * radius;
-	float discrimminant = b*b - 4*a*c;
-	return (discrimminant > 0);
+	double a = dot(r.direction, r.direction);
+	double b = 2.0 * dot(oc, r.direction)	;
+	double c = dot(oc, oc) - radius*radius;
+	double discriminant = b*b - 4*a*c;
+	if (discriminant < 0) {
+		return -1.0;
+	}
+	return abs((-b - sqrtf(discriminant)) / (2.0f*a));
 }
 
 Vector3 ray_color(Ray r) {
-	if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
-		return color(1, 0, 0);
+	double t = hit_sphere(point3(0, 0, -1), 0.5, r);
+	if (t > 0.0f) {
+		// printf("t: %9f\r\n", t);
+		Vector3 N = UnitVector(Vector3Subtract(Ray_at(r, t), vec3(0, 0, -1)));
+		return Vector3Scale(Vector3AddValue(N, 1), 0.5);
 	}
 	Vector3 unit_direction = UnitVector(r.direction);
-	double t = 0.5 * (unit_direction.y + 1.0f);
+	t = 0.5 * (unit_direction.y + 1.0f);
 	return Vector3Add(Vector3Scale(Vector3One(), 1.0f - t), Vector3Scale(color(0.5, 0.7, 1.0), t));
 }
 
@@ -40,8 +47,8 @@ void draw_image() {
 
 	for (int j = image_height - 1; j >= 0; j--) {
 		for (int i = 0; i < image_width; i++) {
-			double u = (double)i / (image_width + 1);
-			double v = (double)j / (image_height + 1);
+			double u = (double)i / (image_width - 1);
+			double v = (double)j / (image_height - 1);
 
 			Ray r = (Ray){origin, Vector3Subtract(
 				Vector3Add(
