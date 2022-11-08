@@ -12,3 +12,12 @@ Vector3 Ray_at(Ray r, double t) {
 Vector3 UnitVector(Vector3 v) {
 	return Vector3Scale(v, 1.0f/Vector3Length(v));
 }
+
+Color Vector3ToColor(Vector3 v) {
+	return (Color){
+		(int)(v.x * 255.999),
+		(int)(v.y * 255.999),
+		(int)(v.z * 255.999),
+		255
+	};
+}
