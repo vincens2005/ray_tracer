@@ -49,6 +49,7 @@ union HittableObject {
 typedef struct {
 	union HittableObject object;
 	bool (*hit)(union HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec);
+	void (*print)(union HittableObject o);
 } Hittable;
 
 
@@ -65,34 +66,36 @@ bool Sphere_hit(union HittableObject o, const Ray r, double t_min, double t_max,
 	double c = Vector3LengthSqr(oc) - s.radius*s.radius;
 	double discriminant = half_b*half_b - a*c;
 
-	printf("checking if we hit a sphere\r\n");
-
 	if (discriminant < 0) return false;
 	double sqrtd = sqrt(discriminant);
 
-	double root = (-half_b - sqrtd) / a;
-
-		// Find the nearest root that lies in the acceptable range.
-		if (root < t_min || t_max < root) {
-			root = (-half_b + sqrtd) / a;
-			if (root < t_min || t_max < root)
-					return false;
+	double t = (-half_b - sqrtd) / a; // goofy ahh quadratic formula
+	// Find the nearest t that lies in the acceptable range.
+	if (t <= t_min || t >= t_max) {
+		t = (-half_b + sqrtd) / a;
+		if (t <= t_min || t >= t_max) {
+			return false;
+		}
 	}
-	printf("oh dear\r\n");
-	printf("root: %9f\r\n", root);
-	printf("t: %9f\r\n", rec->t);
-	rec->t = root;
 
+	rec->t = t;
 	rec->p = Ray_at(r, rec->t);
-	Vector3 outward_normal = Vector3Scale(Vector3Subtract(rec->p, s.center), 1.0f / s.radius);
+
+	Vector3 outward_normal = Vector3Scale(Vector3Subtract(rec->p, s.center), 1.0 / s.radius);
 	set_face_normal(rec, r, outward_normal); // if the ray is inside the sphere the normal should be inverted
 
 	return true;
 }
 
+void Sphere_print(union HittableObject o) {
+	Sphere s = o.sphere;
+	printf("Sphere (%2f, %2f, %2f) radius %2f\r\n", s.center.x, s.center.y, s.center.z, s.radius);
+}
+
 Hittable MakeSphere(Vector3 center, double radius) {
 	Hittable s;
 	s.hit = Sphere_hit;
+	s.print = Sphere_print;
 	s.object.sphere = (Sphere){radius, center};
 	return s;
 }
@@ -122,25 +125,24 @@ HittableList MakeHittableList() {
 }
 
 bool HittableList_hit(HittableList* l, const Ray r, double t_min, double t_max, HitRecord* rec) {
-	HitRecord *temp_rec;
+	HitRecord temp_rec;
 	bool hit_anything = false;
 	double closest_so_far = t_max;
 
 	for (int i = 0; i < l->len; i++) {
-		if (l->objects[i].hit(l->objects[i].object, r, t_min, closest_so_far, temp_rec)) {
-			printf("whoa we hit a thing!!!\r\n");
+		if (l->objects[i].hit(l->objects[i].object, r, t_min, closest_so_far, &temp_rec)) {
 			hit_anything = true;
-			closest_so_far = temp_rec->t;
-			rec = temp_rec;
+			closest_so_far = temp_rec.t;
+			*rec = temp_rec;
 		}
 	}
 	return hit_anything;
 }
 
-void HittableList_print(HittableList* list) {
-	printf("list\r\n");
-	for (int i = 0; i < list->len; i++) {
-		printf("\t object;\r\n");
+void HittableList_print(HittableList* l, char* tabulation) {
+	printf("%slist of length %d\r\n", tabulation, l->len);
+	for (int i = 0; i < l->len; i++) {
+		printf("%s\t", tabulation);
+		l->objects[i].print(l->objects[i].object);
 	}
-	printf("done");
 }
