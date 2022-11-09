@@ -25,10 +25,11 @@ Ray Camera_getRay(Cam c, double u, double v) {
 	)));
 }
 
-void Camera_update(Cam *c, double image_width, double image_height) {
-	double viewport_height = 2.0f;
-	double viewport_width = viewport_height * ((double)image_width / (double)image_height);
-	double focal_length = 1.0f;
+void Camera_update(Cam *c, Vector3 origin, int image_width, int image_height) {
+	float viewport_height = 2.0f;
+	float viewport_width = viewport_height * ((double)image_width / (double)image_height);
+	float focal_length = 1.0f;
+	c->origin = origin;
 	c->horizontal = vec3(viewport_width, 0, 0);
 	c->vertical = vec3(0, viewport_height, 0);
 
@@ -38,11 +39,10 @@ void Camera_update(Cam *c, double image_width, double image_height) {
 	);
 }
 
-Cam MakeCamera(double image_width, double image_height) {
+Cam MakeCamera(Vector3 origin, int image_width, int image_height) {
 	Cam c;
 
-	c.origin = Vector3Zero();
-	Camera_update(&c, image_width, image_height);
+	Camera_update(&c, origin, image_width, image_height);
 
 	return c;
 }

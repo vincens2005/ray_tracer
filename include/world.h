@@ -109,6 +109,7 @@ Hittable MakeSphere(Vector3 center, double radius, Mat* material) {
 typedef struct {
 	Hittable* objects;
 	int len;
+	bool changed;
 	Cam camera;
 } HittableList;
 
@@ -127,7 +128,8 @@ void HittableList_add(HittableList* list, Hittable obj) {
 HittableList MakeHittableList() {
 	return (HittableList){
 		 (Hittable*)malloc(sizeof(Hittable)),
-		 0
+		 0,
+		 false
 	};
 }
 

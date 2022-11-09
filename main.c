@@ -45,10 +45,11 @@ void draw_image(HittableList* world, Picture* pic) {
 	int image_width = GetScreenWidth();
 	int image_height = GetScreenHeight();
 
-	if (pic->width != image_width || pic->height != image_height) {
+	if (pic->width != image_width || pic->height != image_height || world->changed) {
 		Picture_free(pic);
 		*pic = MakePicture(image_width, image_height);
-		world->camera = MakeCamera(image_width, image_height);
+		Camera_update(&(world->camera), world->camera.origin, image_width, image_height);
+		world->changed = false; // acknowledge change
 	}
 	if (pic->sample_count < samples_per_pixel)
 		pic->sample_count++;
@@ -73,7 +74,6 @@ void draw_image(HittableList* world, Picture* pic) {
 				color = Vector3Add(color, Picture_at(pic, i, j));
 
 			Picture_set(pic, i, j, color);
-			// printf("expected value: %f. Actual value: %f\r\n", color.z, test.z);
 
 			DrawPixel(i, image_height - j, Vector3ToColor(color, 1.0 / pic->sample_count));
 		}
@@ -103,11 +103,38 @@ int main() {
 	HittableList_add(&world, MakeSphere(point3(0.1, 0.6, -1), 0.34, &metal));
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
+	world.camera = MakeCamera(Vector3Zero(), 0, 0);
 
 	Picture pic = MakePicture(0, 0);
 
 	while (!WindowShouldClose()) {
-		bool screenshotting = IsKeyReleased(83);
+		bool screenshotting = IsKeyReleased(80);
+
+		// camera movement
+		Vector3 camera_delta = vec3(0,0,0);
+		if (IsKeyDown(87)) {
+			camera_delta.z -= 0.1;
+		}
+		if (IsKeyDown(83)) {
+			camera_delta.z += 0.1;
+		}
+		if (IsKeyDown(65)) {
+			camera_delta.x -= 0.1;
+		}
+		if (IsKeyDown(68)) {
+			camera_delta.x += 0.1;
+		}
+		if (IsKeyDown(81)) {
+			camera_delta.y += 0.1;
+		}
+		if (IsKeyDown(90)) {
+			camera_delta.y -= 0.1;
+		}
+
+		if (Vector3Length(camera_delta) != 0 ) {
+			Camera_update(&(world.camera), Vector3Add(world.camera.origin, camera_delta), pic.width, pic.height);
+			world.changed = true;
+		}
 
 		BeginDrawing();
 			ClearBackground(BLACK);
