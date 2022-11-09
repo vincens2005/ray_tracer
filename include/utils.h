@@ -109,3 +109,7 @@ Vector3 random_in_unit_sphere() {
 		return p;
 	}
 }
+
+Vector3 random_unit_vector() {
+    return UnitVector(random_in_unit_sphere());
+}

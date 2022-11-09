@@ -28,7 +28,7 @@ Vector3 ray_color(Ray r, HittableList world, int depth) {
 		return color(0, 0, 0);
 	}
 	if (HittableList_hit(&world, r, 0.001, INFINITY, &rec)) {
-		Vector3 target = Vector3Add(rec.p, Vector3Add(rec.normal, random_in_unit_sphere()));
+		Vector3 target = Vector3Add(rec.p, Vector3Add(rec.normal, random_unit_vector()));
 		return Vector3Scale(
 			ray_color(ray(
 				rec.p,
@@ -46,8 +46,8 @@ HittableList make_world() {
 	HittableList world = MakeHittableList();
 	printf("making balls\r\n");
 	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100));
-	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5f));
-	// HittableList_add(&world, MakeSphere(point3(-0.5, 0, -1), 0.2f));
+	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5));
+	// HittableList_add(&world, MakeSphere(point3(0.35, -0.12, -1), 0.34));
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
 	return world;
