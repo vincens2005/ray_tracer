@@ -90,8 +90,8 @@ int main() {
 	// make materials
 	printf("making materials\r\n");
 	Mat lambertiangray = MakeLambertian(color(0.7, 0.7, 0.7));
-	Mat redmetal = MakeMetal(color(0.7, 0.3, 0.3));
-	Mat metal = MakeMetal(color(0.8, 0.8, 0.8));
+	Mat redmetal = MakeMetal(color(0.7, 0.3, 0.3), 0.05);
+	Mat metal = MakeMetal(color(0.8, 0.8, 0.8), 0.3);
 
 	// make world
 	printf("making world\r\n");

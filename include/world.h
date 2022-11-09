@@ -9,20 +9,6 @@
 #include "utils.h"
 #include "camera.h"
 
-// material type definitions
-typedef struct {
-	Vector3 albedo;
-} Lambertian;
-
-typedef struct {
-	Vector3 albedo;
-} Metal;
-
-typedef union {
-	Lambertian lambertian;
-	Metal metal;
-} MaterialObject;
-
 typedef struct Mat Mat;
 
 typedef struct {
@@ -33,13 +19,7 @@ typedef struct {
 	Mat *mat_ptr;
 } HitRecord;
 
-struct Mat {
-	MaterialObject object;
-	bool (*scatter)(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered);
-};
-
 // object type definitions
-
 typedef struct {
 	double radius;
 	Vector3 center;
@@ -157,6 +137,26 @@ void HittableList_print(HittableList* l, char* tabulation) {
 }
 
 // materials
+typedef struct {
+	Vector3 albedo;
+} Lambertian;
+
+typedef struct {
+	Vector3 albedo;
+	float roughness;
+} Metal;
+
+typedef union {
+	Lambertian lambertian;
+	Metal metal;
+} MaterialObject;
+
+
+struct Mat {
+	MaterialObject object;
+	bool (*scatter)(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered);
+};
+
 bool Lambertian_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered) {
 	Lambertian l = o.lambertian;
 	Vector3 scatter_direction = Vector3Add(rec->normal, random_unit_vector());
@@ -174,7 +174,10 @@ bool Metal_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *at
 	Metal m = o.metal;
 
 	Vector3 reflected = Vector3Reflect(UnitVector(r_in.direction), rec->normal);
-	*scattered = ray(rec->p, reflected);
+	*scattered = ray(rec->p, Vector3Add(
+		reflected,
+		Vector3Scale(random_in_unit_sphere(), m.roughness)
+	));
 	*attenuation = m.albedo;
 	return (dot(scattered->direction, rec->normal) > 0);
 }
@@ -186,10 +189,10 @@ Mat MakeLambertian(Vector3 albedo) {
 	return s;
 }
 
-Mat MakeMetal(Vector3 albedo) {
+Mat MakeMetal(Vector3 albedo, float roughness) {
 	Mat s;
 	s.scatter = Metal_scatter;
-	s.object.metal = (Metal){albedo};
+	s.object.metal = (Metal){albedo, roughness < 1 ? roughness : 1};
 	return s;
 }
 #endif
