@@ -13,8 +13,39 @@
 #define degrees_to_radians(d) (d * pi / 180.0f)
 
 typedef struct {
-	
+	int width;
+	int height;
+	int sample_count;
+	Vector3* color;
 } Picture;
+
+Picture MakePicture(int width, int height) {
+	printf("making p\r\n");
+	Picture p = {
+		width,
+		height,
+		0
+	};
+
+	p.color = (Vector3*)malloc(width * height * sizeof(Vector3));
+
+	return p;
+}
+
+Vector3 Picture_at(Picture *p, int u, int v) {
+	return p->color[v * p->height + u];
+}
+
+void Picture_set(Picture *p, int u, int v, Vector3 color) {
+	p->color[v * p->height + u] = color;
+}
+
+void Picture_free(Picture *p) {
+	free(p->color);
+	p->sample_count = 0;
+	p->width = 0.0;
+	p->height = 0.0;
+}
 
 
 Vector3 Ray_at(Ray r, double t) {
@@ -41,9 +72,12 @@ Color Vector3ToColor(Vector3 v, double s) {
 	};
 }
 
-double random_double(double min, double max) {
-    // Returns a random real in [min,max)
-    srandom(time(0));
-    return min + (max-min) * (random() / (RAND_MAX + 1.0));
+double random_double1() {
+    // Returns a random real in [0,1).
+    return rand() / (RAND_MAX + 1.0);
 }
 
+double random_double(double min, double max) {
+    // Returns a random real in [min,max).
+    return min + (max-min)*random_double1();
+}

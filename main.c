@@ -42,24 +42,37 @@ HittableList make_world() {
 	return world;
 }
 
-void draw_image(HittableList world) {
+void draw_image(HittableList world, Picture* pic) {
 	// image
 	int image_width = GetScreenWidth();
 	int image_height = GetScreenHeight();
 
+	if (pic->width != image_width || pic->height != image_height) {
+		Picture_free(pic);
+		*pic = MakePicture(image_width, image_height);
+		printf("resetted pic\r\n");
+	}
+
+	pic->sample_count++;
 	Cam cam = MakeCamera(image_width, image_height);
 
 
 	for (int j = image_height - 1; j >= 0; j--) {
 		for (int i = 0; i < image_width; i++) {
-			double u = (i + random_double(0.0, 1.0)) / (image_width - 1);
-			double v = (j + random_double(0.0, 1.0)) / (image_height - 1);
+			double u = (i + random_double1()) / (image_width - 1);
+			double v = (j + random_double1()) / (image_height - 1);
 
 			Ray r = Camera_getRay(cam, u, v);
 
-			Color color = Vector3ToColor(ray_color(r, world), 1);
+			Vector3 color = ray_color(r, world);
 
-			DrawPixel(i, image_height - j, color);
+			if (pic->sample_count > 1)
+				color = Vector3Add(color, Picture_at(pic, i, j));
+
+			Picture_set(pic, i, j, color);
+			// printf("expected value: %f. Actual value: %f\r\n", color.z, test.z);
+
+			DrawPixel(i, image_height - j, Vector3ToColor(color, 1.0 / pic->sample_count));
 		}
 	}
 }
@@ -72,11 +85,12 @@ int main() {
 	SetTargetFPS(60);
 
 	HittableList world = make_world();
+	Picture pic = MakePicture(0, 0);
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
 			ClearBackground(BLACK);
-			draw_image(world);
+			draw_image(world, &pic);
 			DrawFPS(10, 10);
 		EndDrawing();
 	}
