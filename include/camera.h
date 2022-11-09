@@ -1,9 +1,13 @@
+#ifndef CAMERA
+#define CAMERA
+
 #include "raylib.h"
 #include "raymath.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include "utils.h"
 
 typedef struct {
 	Vector3 origin;
@@ -42,3 +46,5 @@ Cam MakeCamera(double image_width, double image_height) {
 
 	return c;
 }
+
+#endif

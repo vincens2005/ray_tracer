@@ -28,29 +28,16 @@ Vector3 ray_color(Ray r, HittableList world, int depth) {
 		return color(0, 0, 0);
 	}
 	if (HittableList_hit(&world, r, 0.001, INFINITY, &rec)) {
-		Vector3 target = Vector3Add(rec.p, Vector3Add(rec.normal, random_unit_vector()));
-		return Vector3Scale(
-			ray_color(ray(
-				rec.p,
-				Vector3Subtract(target, rec.p)
-			), world, depth - 1),
-		0.5);
+		Ray scattered;
+		Vector3 attenuation;
+		if (rec.mat_ptr->scatter(rec.mat_ptr->object, r, &rec, &attenuation, &scattered)) {
+			return Vector3Multiply(attenuation, ray_color(scattered, world, depth - 1));
+		}
+		return color(0, 0, 0);
 	}
 	Vector3 unit_direction = UnitVector(r.direction);
 	double t = 0.5 * (unit_direction.y + 1.0f);
 	return Vector3Add(Vector3Scale(Vector3One(), 1.0f - t), Vector3Scale(color(0.5, 0.7, 1.0), t));
-}
-
-HittableList make_world() {
-	printf("making world\r\n");
-	HittableList world = MakeHittableList();
-	printf("making balls\r\n");
-	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100));
-	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5));
-	// HittableList_add(&world, MakeSphere(point3(0.35, -0.12, -1), 0.34));
-	printf("balls initialized\r\n\tworld:\r\n");
-	HittableList_print(&world, "\t");
-	return world;
 }
 
 void draw_image(HittableList world, Picture* pic) {
@@ -100,7 +87,20 @@ int main() {
 
 	SetTargetFPS(60);
 
-	HittableList world = make_world();
+	// make materials
+	printf("making materials\r\n");
+	Mat lambertiangray = MakeLambertian(color(0.7, 0.7, 0.7));
+
+	// make world
+	printf("making world\r\n");
+	HittableList world = MakeHittableList();
+	printf("making balls\r\n");
+	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, &lambertiangray));
+	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, &lambertiangray));
+	// HittableList_add(&world, MakeSphere(point3(0.35, -0.12, -1), 0.34));
+	printf("balls initialized\r\n\tworld:\r\n");
+	HittableList_print(&world, "\t");
+
 	Picture pic = MakePicture(0, 0);
 
 	while (!WindowShouldClose()) {

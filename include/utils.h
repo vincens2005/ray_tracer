@@ -1,3 +1,6 @@
+#ifndef UTILS
+#define UTILS
+
 #include "raylib.h"
 #include "raymath.h"
 #include <stdlib.h>
@@ -113,3 +116,5 @@ Vector3 random_in_unit_sphere() {
 Vector3 random_unit_vector() {
     return UnitVector(random_in_unit_sphere());
 }
+
+#endif
