@@ -16,31 +16,38 @@ typedef struct {
 	int width;
 	int height;
 	int sample_count;
-	Vector3* color;
+	Vector3** color;
 } Picture;
 
 Picture MakePicture(int width, int height) {
-	printf("making p\r\n");
 	Picture p = {
 		width,
 		height,
 		0
 	};
 
-	p.color = (Vector3*)malloc(width * height * sizeof(Vector3));
+	p.color = (Vector3**)malloc(width * sizeof(Vector3*));
+
+	for (int i = 0; i < width; i++) {
+		p.color[i] = (Vector3*)malloc(width * sizeof(Vector3));
+	}
 
 	return p;
 }
 
 Vector3 Picture_at(Picture *p, int u, int v) {
-	return p->color[v * p->height + u];
+	return p->color[u][v];
 }
 
 void Picture_set(Picture *p, int u, int v, Vector3 color) {
-	p->color[v * p->height + u] = color;
+	p->color[u][v] = color;
 }
 
 void Picture_free(Picture *p) {
+	for (int i = 0; i < p->width; i++) {
+		free(p->color[i]);
+	}
+
 	free(p->color);
 	p->sample_count = 0;
 	p->width = 0.0;

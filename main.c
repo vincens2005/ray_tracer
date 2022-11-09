@@ -50,7 +50,6 @@ void draw_image(HittableList world, Picture* pic) {
 	if (pic->width != image_width || pic->height != image_height) {
 		Picture_free(pic);
 		*pic = MakePicture(image_width, image_height);
-		printf("resetted pic\r\n");
 	}
 
 	pic->sample_count++;
@@ -59,6 +58,9 @@ void draw_image(HittableList world, Picture* pic) {
 
 	for (int j = image_height - 1; j >= 0; j--) {
 		for (int i = 0; i < image_width; i++) {
+			if (pic->sample_count > samples_per_pixel) {
+				DrawPixel(i, image_height - j, Vector3ToColor(Picture_at(pic, i, j), 1.0 / pic->sample_count));
+			}
 			double u = (i + random_double1()) / (image_width - 1);
 			double v = (j + random_double1()) / (image_height - 1);
 
