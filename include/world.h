@@ -13,8 +13,13 @@ typedef struct {
 	Vector3 albedo;
 } Lambertian;
 
+typedef struct {
+	Vector3 albedo;
+} Metal;
+
 typedef union {
 	Lambertian lambertian;
+	Metal metal;
 } MaterialObject;
 
 typedef struct Mat Mat;
@@ -161,10 +166,26 @@ bool Lambertian_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector
 	return true;
 }
 
+bool Metal_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered) {
+	Metal m = o.metal;
+
+	Vector3 reflected = Vector3Reflect(UnitVector(r_in.direction), rec->normal);
+	*scattered = ray(rec->p, reflected);
+	*attenuation = m.albedo;
+	return (dot(scattered->direction, rec->normal) > 0);
+}
+
 Mat MakeLambertian(Vector3 albedo) {
 	Mat s;
 	s.scatter = Lambertian_scatter;
 	s.object.lambertian = (Lambertian){albedo};
+	return s;
+}
+
+Mat MakeMetal(Vector3 albedo) {
+	Mat s;
+	s.scatter = Metal_scatter;
+	s.object.metal = (Metal){albedo};
 	return s;
 }
 #endif

@@ -90,14 +90,17 @@ int main() {
 	// make materials
 	printf("making materials\r\n");
 	Mat lambertiangray = MakeLambertian(color(0.7, 0.7, 0.7));
+	Mat redmetal = MakeMetal(color(0.7, 0.3, 0.3));
+	Mat metal = MakeMetal(color(0.8, 0.8, 0.8));
 
 	// make world
 	printf("making world\r\n");
 	HittableList world = MakeHittableList();
 	printf("making balls\r\n");
 	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, &lambertiangray));
-	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, &lambertiangray));
-	// HittableList_add(&world, MakeSphere(point3(0.35, -0.12, -1), 0.34));
+	HittableList_add(&world, MakeSphere(point3(-0.35, 0, -1), 0.34, &lambertiangray));
+	HittableList_add(&world, MakeSphere(point3(0.35, -0.12, -1), 0.34, &redmetal));
+	HittableList_add(&world, MakeSphere(point3(0.1, 0.6, -1), 0.34, &metal));
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
 
