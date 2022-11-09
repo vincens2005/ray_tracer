@@ -73,6 +73,9 @@ double clamp(double x, double min, double max) {
 
 Color Vector3ToColor(Vector3 v, double s) {
 	v = Vector3Scale(v, s);
+	v.x = sqrt(v.x);
+	v.y = sqrt(v.y);
+	v.z = sqrt(v.z);
 	return (Color){
 		(int)(clamp(v.x, 0.0, 0.999) * 256),
 		(int)(clamp(v.y, 0.0, 0.999) * 256),

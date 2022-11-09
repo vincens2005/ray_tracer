@@ -47,6 +47,7 @@ HittableList make_world() {
 	printf("making balls\r\n");
 	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100));
 	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5f));
+	// HittableList_add(&world, MakeSphere(point3(-0.5, 0, -1), 0.2f));
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
 	return world;
