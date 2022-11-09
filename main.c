@@ -8,6 +8,7 @@
 #include "include/camera.h"
 
 int samples_per_pixel = 100;
+int max_bounces = 25;
 
 double hit_sphere(const Vector3 center, double radius, const Ray r) {
 	Vector3 oc = Vector3Subtract(r.position, center);
@@ -21,10 +22,19 @@ double hit_sphere(const Vector3 center, double radius, const Ray r) {
 	return fabs(-half_b - sqrt(discriminant) / a);
 }
 
-Vector3 ray_color(Ray r, HittableList world) {
+Vector3 ray_color(Ray r, HittableList world, int depth) {
 	HitRecord rec;
+	if (depth <= 0) {
+		return color(0, 0, 0);
+	}
 	if (HittableList_hit(&world, r, 0, INFINITY, &rec)) {
-		return Vector3Scale(Vector3Add(rec.normal, color(1,1,1)), 0.5);
+		Vector3 target = Vector3Add(rec.p, Vector3Add(rec.normal, random_in_unit_sphere()));
+		return Vector3Scale(
+			ray_color(ray(
+				rec.p,
+				Vector3Subtract(target, rec.p)
+			), world, depth - 1),
+		0.5);
 	}
 	Vector3 unit_direction = UnitVector(r.direction);
 	double t = 0.5 * (unit_direction.y + 1.0f);
@@ -69,7 +79,7 @@ void draw_image(HittableList world, Picture* pic) {
 
 			Ray r = Camera_getRay(cam, u, v);
 
-			Vector3 color = ray_color(r, world);
+			Vector3 color = ray_color(r, world, max_bounces);
 
 			if (pic->sample_count > 1)
 				color = Vector3Add(color, Picture_at(pic, i, j));

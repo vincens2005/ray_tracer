@@ -12,6 +12,7 @@
 #define pi (double)3.1415926535897932385
 #define degrees_to_radians(d) (d * pi / 180.0f)
 #define ndigits(i) ((int)(i != 0 ? floor(log10(abs(i))) + 1 : 1))
+#define ray(o, v) ((Ray){o, v})
 
 typedef struct {
 	int width;
@@ -88,4 +89,20 @@ double random_double1() {
 double random_double(double min, double max) {
     // Returns a random real in [min,max).
     return min + (max-min)*random_double1();
+}
+
+Vector3 Vector3Random() {
+	return vec3((float)random_double1(), (float)random_double1(), (float)random_double1());
+}
+
+Vector3 Vector3RandRange(double min, double max) {
+	return vec3((float)random_double(min, max), (float)random_double(min, max), (float)random_double(min, max));
+}
+
+Vector3 random_in_unit_sphere() {
+	while (true) {
+		Vector3 p = Vector3RandRange(-1, 1);
+		if (Vector3LengthSqr(p) >= 1) continue;
+		return p;
+	}
 }

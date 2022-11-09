@@ -13,12 +13,12 @@ typedef struct {
 } Cam;
 
 Ray Camera_getRay(Cam c, double u, double v) {
-	return (Ray){c.origin, Vector3Add(
+	return ray(c.origin, Vector3Add(
 		c.lower_left_corner,
 		Vector3Add(
 			Vector3Scale(c.horizontal, u),
 			Vector3Scale(c.vertical, v)
-	))};
+	)));
 }
 
 void Camera_update(Cam *c, double image_width, double image_height) {
