@@ -5,6 +5,9 @@
 #include "include/raymath.h"
 #include "include/utils.h"
 #include "include/world.h"
+#include "include/camera.h"
+
+int samples_per_pixel = 100;
 
 double hit_sphere(const Vector3 center, double radius, const Ray r) {
 	Vector3 oc = Vector3Subtract(r.position, center);
@@ -44,34 +47,17 @@ void draw_image(HittableList world) {
 	int image_width = GetScreenWidth();
 	int image_height = GetScreenHeight();
 
-	// camera
-	double viewport_height = 2.0f;
-	double viewport_width = viewport_height * ((double)image_width / (double)image_height);
-	double focal_length = 1.0f;
-
-	Vector3 origin = Vector3Zero();
-	Vector3 horizontal = vec3(viewport_width, 0, 0);
-	Vector3 vertical = vec3(0, viewport_height, 0);
-
-	Vector3 lower_left_corner = Vector3Subtract(
-		Vector3Subtract(origin, Vector3Scale(horizontal, 0.5f)),
-		Vector3Subtract(Vector3Scale(vertical, 0.5f), vec3(0, 0, -focal_length))
-	);
+	Cam cam = MakeCamera(image_width, image_height);
 
 
 	for (int j = image_height - 1; j >= 0; j--) {
 		for (int i = 0; i < image_width; i++) {
-			double u = (double)i / (image_width - 1);
-			double v = (double)j / (image_height - 1);
+			double u = (i + random_double(0.0, 1.0)) / (image_width - 1);
+			double v = (j + random_double(0.0, 1.0)) / (image_height - 1);
 
-			Ray r = (Ray){origin, Vector3Add(
-				lower_left_corner,
-				Vector3Add(
-					Vector3Scale(horizontal, u),
-					Vector3Scale(vertical, v)
-			))};
+			Ray r = Camera_getRay(cam, u, v);
 
-			Color color = Vector3ToColor(ray_color(r, world));
+			Color color = Vector3ToColor(ray_color(r, world), 1);
 
 			DrawPixel(i, image_height - j, color);
 		}

@@ -12,6 +12,10 @@
 #define pi (double)3.1415926535897932385
 #define degrees_to_radians(d) (d * pi / 180.0f)
 
+typedef struct {
+	
+} Picture;
+
 
 Vector3 Ray_at(Ray r, double t) {
 	return Vector3Add(r.position, Vector3Scale(r.direction, t));
@@ -21,11 +25,18 @@ Vector3 UnitVector(Vector3 v) {
 	return Vector3Scale(v, 1.0f/Vector3Length(v));
 }
 
-Color Vector3ToColor(Vector3 v) {
+double clamp(double x, double min, double max) {
+    if (x < min) return min;
+    if (x > max) return max;
+    return x;
+}
+
+Color Vector3ToColor(Vector3 v, double s) {
+	v = Vector3Scale(v, s);
 	return (Color){
-		(int)(v.x * 255.999),
-		(int)(v.y * 255.999),
-		(int)(v.z * 255.999),
+		(int)(clamp(v.x, 0.0, 0.999) * 256),
+		(int)(clamp(v.y, 0.0, 0.999) * 256),
+		(int)(clamp(v.z, 0.0, 0.999) * 256),
 		255
 	};
 }
@@ -35,3 +46,4 @@ double random_double(double min, double max) {
     srandom(time(0));
     return min + (max-min) * (random() / (RAND_MAX + 1.0));
 }
+
