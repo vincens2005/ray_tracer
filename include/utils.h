@@ -117,4 +117,9 @@ Vector3 random_unit_vector() {
     return UnitVector(random_in_unit_sphere());
 }
 
+double reflectance(double cosine, double ref_index) { // schlick approximation
+	double r0 = (1 - ref_index) / (1 + ref_index);
+	r0 = r0 * r0;
+	return r0 + (1 - r0) * pow((1 - cosine), 5);
+}
 #endif

@@ -146,9 +146,14 @@ typedef struct {
 	float roughness;
 } Metal;
 
+typedef struct {
+	double ior;
+} Dielectric;
+
 typedef union {
 	Lambertian lambertian;
 	Metal metal;
+	Dielectric dielectric;
 } MaterialObject;
 
 
@@ -182,6 +187,28 @@ bool Metal_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *at
 	return (dot(scattered->direction, rec->normal) > 0);
 }
 
+bool Dielectric_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered) {
+	Dielectric d = o.dielectric;
+
+	*attenuation = color(1.0, 1.0, 1.0);
+	double refraction_ratio = rec->front_face ? (1.0/d.ior) : d.ior;
+
+	Vector3 unit_direction = UnitVector(r_in.direction);
+	double cos_theta = fmin(dot(Vector3Negate(unit_direction), rec->normal), 1.0);
+	double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+	bool cannot_refract = refraction_ratio * sin_theta > 1.0;
+	Vector3 direction;
+
+	if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double1())
+		direction = Vector3Reflect(unit_direction, rec->normal);
+	else
+		direction = Vector3Refract(unit_direction, rec->normal, refraction_ratio);
+
+	*scattered = ray(rec->p, direction);
+	return true;
+}
+
 Mat MakeLambertian(Vector3 albedo) {
 	Mat s;
 	s.scatter = Lambertian_scatter;
@@ -193,6 +220,13 @@ Mat MakeMetal(Vector3 albedo, float roughness) {
 	Mat s;
 	s.scatter = Metal_scatter;
 	s.object.metal = (Metal){albedo, roughness < 1 ? roughness : 1};
+	return s;
+}
+
+Mat MakeDielectric(double ior) {
+	Mat s;
+	s.scatter = Dielectric_scatter;
+	s.object.dielectric = (Dielectric){ior};
 	return s;
 }
 #endif
