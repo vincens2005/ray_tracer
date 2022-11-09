@@ -7,6 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include "utils.h"
+#include "camera.h"
 
 // material type definitions
 typedef struct {
@@ -108,6 +109,7 @@ Hittable MakeSphere(Vector3 center, double radius, Mat* material) {
 typedef struct {
 	Hittable* objects;
 	int len;
+	Cam camera;
 } HittableList;
 
 void HittableList_clear(HittableList* list) {

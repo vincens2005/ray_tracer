@@ -22,12 +22,12 @@ double hit_sphere(const Vector3 center, double radius, const Ray r) {
 	return fabs(-half_b - sqrt(discriminant) / a);
 }
 
-Vector3 ray_color(Ray r, HittableList world, int depth) {
+Vector3 ray_color(Ray r, HittableList* world, int depth) {
 	HitRecord rec;
 	if (depth <= 0) {
 		return color(0, 0, 0);
 	}
-	if (HittableList_hit(&world, r, 0.001, INFINITY, &rec)) {
+	if (HittableList_hit(world, r, 0.001, INFINITY, &rec)) {
 		Ray scattered;
 		Vector3 attenuation;
 		if (rec.mat_ptr->scatter(rec.mat_ptr->object, r, &rec, &attenuation, &scattered)) {
@@ -40,7 +40,7 @@ Vector3 ray_color(Ray r, HittableList world, int depth) {
 	return Vector3Add(Vector3Scale(Vector3One(), 1.0f - t), Vector3Scale(color(0.5, 0.7, 1.0), t));
 }
 
-void draw_image(HittableList world, Picture* pic) {
+void draw_image(HittableList* world, Picture* pic) {
 	// image
 	int image_width = GetScreenWidth();
 	int image_height = GetScreenHeight();
@@ -48,11 +48,11 @@ void draw_image(HittableList world, Picture* pic) {
 	if (pic->width != image_width || pic->height != image_height) {
 		Picture_free(pic);
 		*pic = MakePicture(image_width, image_height);
+		world->camera = MakeCamera(image_width, image_height);
 	}
 	if (pic->sample_count < samples_per_pixel)
 		pic->sample_count++;
 
-	Cam cam = MakeCamera(image_width, image_height);
 
 
 	for (int j = image_height - 1; j >= 0; j--) {
@@ -65,7 +65,7 @@ void draw_image(HittableList world, Picture* pic) {
 			double u = (i + random_double1()) / (image_width - 1);
 			double v = (j + random_double1()) / (image_height - 1);
 
-			Ray r = Camera_getRay(cam, u, v);
+			Ray r = Camera_getRay(world->camera, u, v);
 
 			Vector3 color = ray_color(r, world, max_bounces);
 
@@ -111,7 +111,7 @@ int main() {
 
 		BeginDrawing();
 			ClearBackground(BLACK);
-			draw_image(world, &pic);
+			draw_image(&world, &pic);
 
 			if (!screenshotting) {
 				DrawFPS(10, 10);
