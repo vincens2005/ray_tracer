@@ -27,7 +27,7 @@ Vector3 ray_color(Ray r, HittableList world, int depth) {
 	if (depth <= 0) {
 		return color(0, 0, 0);
 	}
-	if (HittableList_hit(&world, r, 0, INFINITY, &rec)) {
+	if (HittableList_hit(&world, r, 0.001, INFINITY, &rec)) {
 		Vector3 target = Vector3Add(rec.p, Vector3Add(rec.normal, random_in_unit_sphere()));
 		return Vector3Scale(
 			ray_color(ray(
