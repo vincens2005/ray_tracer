@@ -4,6 +4,7 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
 #include "include/utils.h"
+#include "include/world.h"
 
 double hit_sphere(const Vector3 center, double radius, const Ray r) {
 	Vector3 oc = Vector3Subtract(r.position, center);
