@@ -51,16 +51,19 @@ void draw_image(HittableList world, Picture* pic) {
 		Picture_free(pic);
 		*pic = MakePicture(image_width, image_height);
 	}
+	if (pic->sample_count < samples_per_pixel)
+		pic->sample_count++;
 
-	pic->sample_count++;
 	Cam cam = MakeCamera(image_width, image_height);
 
 
 	for (int j = image_height - 1; j >= 0; j--) {
 		for (int i = 0; i < image_width; i++) {
-			if (pic->sample_count > samples_per_pixel) {
+			if (pic->sample_count >= samples_per_pixel) {
 				DrawPixel(i, image_height - j, Vector3ToColor(Picture_at(pic, i, j), 1.0 / pic->sample_count));
+				continue;
 			}
+
 			double u = (i + random_double1()) / (image_width - 1);
 			double v = (j + random_double1()) / (image_height - 1);
 
@@ -90,11 +93,28 @@ int main() {
 	Picture pic = MakePicture(0, 0);
 
 	while (!WindowShouldClose()) {
+		bool screenshotting = IsKeyReleased(83);
+
 		BeginDrawing();
 			ClearBackground(BLACK);
 			draw_image(world, &pic);
-			DrawFPS(10, 10);
+
+			if (!screenshotting) {
+				DrawFPS(10, 10);
+				char sample[ndigits(pic.sample_count) + 7];
+				sprintf(sample, "sample %d", pic.sample_count);
+				DrawText(sample, 10, 30, 20, WHITE);
+
+				if (pic.sample_count >= samples_per_pixel) {
+					DrawText("rendering done!", 10, 50, 20, DARKGREEN);
+				}
+			}
+
 		EndDrawing();
+
+		if (screenshotting) {
+			TakeScreenshot("render.png");
+		}
 	}
 	CloseWindow();
 

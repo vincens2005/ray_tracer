@@ -11,6 +11,7 @@
 #define dot(a,b) (a.x*b.x + a.y*b.y + a.z*b.z)
 #define pi (double)3.1415926535897932385
 #define degrees_to_radians(d) (d * pi / 180.0f)
+#define ndigits(i) ((int)(i != 0 ? floor(log10(abs(i))) + 1 : 1))
 
 typedef struct {
 	int width;
