@@ -16,6 +16,7 @@
 #define degrees_to_radians(d) (d * pi / 180.0f)
 #define ndigits(i) ((int)(i != 0 ? floor(log10(abs(i))) + 1 : 1))
 #define ray(o, v) ((Ray){o, v})
+#define printvector(v) (printf("(%f, %f, %f)", v.x, v.y, v.z))
 
 typedef struct {
 	int width;
@@ -108,6 +109,14 @@ Vector3 Vector3RandRange(double min, double max) {
 Vector3 random_in_unit_sphere() {
 	while (true) {
 		Vector3 p = Vector3RandRange(-1, 1);
+		if (Vector3LengthSqr(p) >= 1) continue;
+		return p;
+	}
+}
+
+Vector3 random_in_unit_disk() {
+	while (true) {
+		Vector3 p = vec3((float)random_double(-1, 1), (float)random_double(-1, 1), 0);
 		if (Vector3LengthSqr(p) >= 1) continue;
 		return p;
 	}

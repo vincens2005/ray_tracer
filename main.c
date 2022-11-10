@@ -48,7 +48,7 @@ void draw_image(HittableList* world, Picture* pic) {
 	if (pic->width != image_width || pic->height != image_height || world->changed) {
 		Picture_free(pic);
 		*pic = MakePicture(image_width, image_height);
-		Camera_update(&(world->camera), world->camera.origin, world->camera.lookat, world->camera.vup, world->camera.vfov, image_width, image_height);
+		Camera_update(&(world->camera), world->camera.origin, world->camera.lookat, world->camera.vup, world->camera.vfov, world->camera.aperture, world->camera.focus_dist, image_width, image_height);
 		world->changed = false; // acknowledge change
 	}
 	if (pic->sample_count < samples_per_pixel)
@@ -109,7 +109,20 @@ int main() {
 
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
-	world.camera = MakeCamera(Vector3Zero(), vec3(0, 0, -1), vec3(0, 1, 0), 115, 0, 0);
+
+	Vector3 lookfrom = vec3(3, 3, 2);
+	Vector3 lookat = vec3(0, 0, -1);
+
+	world.camera = MakeCamera(
+		lookfrom, // origin
+		lookat, // look at
+		vec3(0, 1, 0), // up
+		20, // fov
+		0.5, // aperture
+		Vector3Length(Vector3Subtract(lookfrom, lookat)), // we focus on the point we're looking at
+		0, // image width
+		0 // image height
+	);
 
 	Picture pic = MakePicture(0, 0);
 
@@ -168,6 +181,8 @@ int main() {
 				Vector3Add(world.camera.lookat, camera_lookat_delta),
 				world.camera.vup,
 				world.camera.vfov + fov_delta,
+				world.camera.aperture,
+				world.camera.focus_dist,
 				pic.width, pic.height
 			);
 			world.changed = true;
