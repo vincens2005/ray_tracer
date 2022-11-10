@@ -118,7 +118,7 @@ int main() {
 
 		// camera movement
 		// wasd + q for up and z for down
-		Vector3 camera_delta = vec3(0,0,0);
+		Vector3 camera_delta = vec3(0,0,0); // TODO: convert delta from screen space to world space
 		if (IsKeyDown(KEY_W)) {
 			camera_delta.z -= 0.1;
 		}
@@ -154,8 +154,14 @@ int main() {
 		}
 
 		double fov_delta = 0;
+		if (IsKeyDown(KEY_T)) {
+			fov_delta -= 1;
+		}
+		if (IsKeyDown(KEY_R)) {
+			fov_delta += 1;
+		}
 
-		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0) {
+		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0 || fov_delta != 0) {
 			Camera_update(
 				&(world.camera),
 				Vector3Add(world.camera.origin, camera_delta),
