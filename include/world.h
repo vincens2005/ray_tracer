@@ -150,10 +150,16 @@ typedef struct {
 	double ior;
 } Dielectric;
 
+typedef struct {
+	Vector3 color;
+	float brighness;
+} Emissive;
+
 typedef union {
 	Lambertian lambertian;
 	Metal metal;
 	Dielectric dielectric;
+	Emissive emissive;
 } MaterialObject;
 
 
@@ -183,8 +189,13 @@ bool Metal_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *at
 		reflected,
 		Vector3Scale(random_in_unit_sphere(), m.roughness)
 	));
-	*attenuation = m.albedo;
-	return (dot(scattered->direction, rec->normal) > 0);
+
+	if (dot(scattered->direction, rec->normal) > 0) {
+		*attenuation = m.albedo;
+		return true;
+	}
+
+	return false;
 }
 
 bool Dielectric_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered) {
@@ -204,9 +215,14 @@ bool Dielectric_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector
 		direction = Vector3Reflect(unit_direction, rec->normal);
 	else
 		direction = Vector3Refract(unit_direction, rec->normal, refraction_ratio);
-
 	*scattered = ray(rec->p, direction);
 	return true;
+}
+
+bool Emissive_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered) {
+	Emissive e = o.emissive;
+	*attenuation = Vector3Scale(e.color, e.brighness);
+	return false;
 }
 
 Mat MakeLambertian(Vector3 albedo) {
@@ -227,6 +243,13 @@ Mat MakeDielectric(double ior) {
 	Mat s;
 	s.scatter = Dielectric_scatter;
 	s.object.dielectric = (Dielectric){ior};
+	return s;
+}
+
+Mat MakeEmissive(Vector3 color, float brightness) {
+	Mat s;
+	s.scatter = Emissive_scatter;
+	s.object.emissive = (Emissive){color, brightness};
 	return s;
 }
 #endif
