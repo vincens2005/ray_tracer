@@ -10,18 +10,6 @@
 int samples_per_pixel = 100;
 int max_bounces = 25;
 
-double hit_sphere(const Vector3 center, double radius, const Ray r) {
-	Vector3 oc = Vector3Subtract(r.position, center);
-	double a = Vector3LengthSqr(r.direction);
-	double half_b = dot(oc, r.direction);
-	double c = Vector3LengthSqr(oc) - radius*radius;
-	double discriminant = half_b*half_b - a*c;
-	if (discriminant < 0) {
-		return -1.0;
-	}
-	return fabs(-half_b - sqrt(discriminant) / a);
-}
-
 Vector3 ray_color(Ray r, HittableList* world, int depth) {
 	HitRecord rec;
 	if (depth <= 0) {
@@ -131,7 +119,7 @@ int main() {
 
 		// camera movement
 		// wasd + q for up and z for down
-		Vector3 camera_delta = vec3(0,0,0); // TODO: convert delta from screen space to world space
+		Vector3 camera_delta = vec3(0,0,0);
 		if (IsKeyDown(KEY_W)) {
 			camera_delta.z -= 0.1;
 		}
