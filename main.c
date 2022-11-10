@@ -117,8 +117,8 @@ int main() {
 		lookfrom, // origin
 		lookat, // look at
 		vec3(0, 1, 0), // up
-		20, // fov
-		0.5, // aperture
+		50, // fov
+		0.0, // aperture
 		Vector3Length(Vector3Subtract(lookfrom, lookat)), // we focus on the point we're looking at
 		0, // image width
 		0 // image height
@@ -174,10 +174,12 @@ int main() {
 			fov_delta += 1;
 		}
 
+		Vector3 camera_movement_vector = Vector3Add(Vector3Add(Vector3Scale(world.camera.w, camera_delta.z), Vector3Scale(world.camera.u, camera_delta.x)), Vector3Scale(world.camera.v, camera_delta.y));
+		camera_lookat_delta = Vector3Multiply(Vector3Add(camera_movement_vector, camera_lookat_delta), vec3(1, 1, 0));
 		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0 || fov_delta != 0) {
 			Camera_update(
 				&(world.camera),
-				Vector3Add(world.camera.origin, camera_delta),
+				Vector3Add(world.camera.origin, camera_movement_vector),
 				Vector3Add(world.camera.lookat, camera_lookat_delta),
 				world.camera.vup,
 				world.camera.vfov + fov_delta,
