@@ -174,8 +174,20 @@ int main() {
 			fov_delta += 1;
 		}
 
-		Vector3 camera_movement_vector = Vector3Add(Vector3Add(Vector3Scale(world.camera.w, camera_delta.z), Vector3Scale(world.camera.u, camera_delta.x)), Vector3Scale(world.camera.v, camera_delta.y));
-		camera_lookat_delta = Vector3Multiply(Vector3Add(camera_movement_vector, camera_lookat_delta), vec3(1, 1, 0));
+		Vector3 camera_movement_vector = Vector3Add(
+			Vector3Add(
+				Vector3Scale(world.camera.w, camera_delta.z),
+				Vector3Scale(world.camera.u, camera_delta.x)),
+				Vector3Scale(world.camera.v, camera_delta.y)
+		);
+
+		camera_lookat_delta = Vector3Add(
+			Vector3Add(
+				Vector3Scale(world.camera.w, camera_lookat_delta.z),
+				Vector3Scale(world.camera.u, camera_lookat_delta.x)),
+				Vector3Scale(world.camera.v, camera_lookat_delta.y)
+		);
+		camera_lookat_delta = Vector3Add(camera_movement_vector, camera_lookat_delta);
 		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0 || fov_delta != 0) {
 			Camera_update(
 				&(world.camera),
