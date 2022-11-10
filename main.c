@@ -48,7 +48,7 @@ void draw_image(HittableList* world, Picture* pic) {
 	if (pic->width != image_width || pic->height != image_height || world->changed) {
 		Picture_free(pic);
 		*pic = MakePicture(image_width, image_height);
-		Camera_update(&(world->camera), world->camera.origin, image_width, image_height);
+		Camera_update(&(world->camera), world->camera.origin, world->camera.lookat, world->camera.vup, world->camera.vfov, image_width, image_height);
 		world->changed = false; // acknowledge change
 	}
 	if (pic->sample_count < samples_per_pixel)
@@ -93,22 +93,23 @@ int main() {
 	Mat redmetal = MakeMetal(color(0.7, 0.3, 0.3), 0.05);
 	Mat metal = MakeMetal(color(0.8, 0.8, 0.8), 0.3);
 	Mat glass = MakeDielectric(1.51);
+	Mat ground = MakeLambertian(color(0.2, 0.6, 0.1));
 
 	// make world
 	printf("making world\r\n");
 	HittableList world = MakeHittableList();
 	printf("making balls\r\n");
-	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, &lambertiangray));
+	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, &ground));
 
 	HittableList_add(&world, MakeSphere(point3(-1, 0, -1), 0.5, &glass));
 	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, &lambertiangray));
 	HittableList_add(&world, MakeSphere(point3(1, 0, -1), 0.5, &redmetal));
-	
-	HittableList_add(&world, MakeSphere(point3(0.1, 0.6, -1), 0.34, &metal));
+
+	HittableList_add(&world, MakeSphere(point3(0.1, 1, -1.5), 0.34, &metal));
 
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
-	world.camera = MakeCamera(Vector3Zero(), 0, 0);
+	world.camera = MakeCamera(Vector3Zero(), vec3(0, 0, -1), vec3(0, 1, 0), 115, 0, 0);
 
 	Picture pic = MakePicture(0, 0);
 
@@ -116,28 +117,53 @@ int main() {
 		bool screenshotting = IsKeyReleased(80);
 
 		// camera movement
+		// wasd + q for up and z for down
 		Vector3 camera_delta = vec3(0,0,0);
-		if (IsKeyDown(87)) {
+		if (IsKeyDown(KEY_W)) {
 			camera_delta.z -= 0.1;
 		}
-		if (IsKeyDown(83)) {
+		if (IsKeyDown(KEY_S)) {
 			camera_delta.z += 0.1;
 		}
-		if (IsKeyDown(65)) {
+		if (IsKeyDown(KEY_A)) {
 			camera_delta.x -= 0.1;
 		}
-		if (IsKeyDown(68)) {
+		if (IsKeyDown(KEY_D)) {
 			camera_delta.x += 0.1;
 		}
-		if (IsKeyDown(81)) {
+		if (IsKeyDown(KEY_Q)) {
 			camera_delta.y += 0.1;
 		}
-		if (IsKeyDown(90)) {
+		if (IsKeyDown(KEY_Z)) {
 			camera_delta.y -= 0.1;
 		}
 
-		if (Vector3Length(camera_delta) != 0 ) {
-			Camera_update(&(world.camera), Vector3Add(world.camera.origin, camera_delta), pic.width, pic.height);
+		Vector3 camera_lookat_delta = vec3(0, 0, 0);
+		// arrow keys
+		if (IsKeyDown(KEY_DOWN)) {
+			camera_lookat_delta.y -= 0.1;
+		}
+		if (IsKeyDown(KEY_UP)) {
+			camera_lookat_delta.y += 0.1;
+		}
+		if (IsKeyDown(KEY_LEFT)) {
+			camera_lookat_delta.x -= 0.1;
+		}
+		if (IsKeyDown(KEY_RIGHT)) {
+			camera_lookat_delta.x += 0.1;
+		}
+
+		double fov_delta = 0;
+
+		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0) {
+			Camera_update(
+				&(world.camera),
+				Vector3Add(world.camera.origin, camera_delta),
+				Vector3Add(world.camera.lookat, camera_lookat_delta),
+				world.camera.vup,
+				world.camera.vfov + fov_delta,
+				pic.width, pic.height
+			);
 			world.changed = true;
 		}
 
