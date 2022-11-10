@@ -110,7 +110,7 @@ int main() {
 		lookat, // look at
 		vec3(0, 1, 0), // up
 		50, // fov
-		0.0, // aperture
+		0, // aperture
 		Vector3Length(Vector3Subtract(lookfrom, lookat)), // we focus on the point we're looking at
 		0, // image width
 		0 // image height
@@ -158,12 +158,31 @@ int main() {
 			camera_lookat_delta.x += 0.1;
 		}
 
+		// t for zoom in; r for zoom out
 		double fov_delta = 0;
 		if (IsKeyDown(KEY_T)) {
 			fov_delta -= 1;
 		}
 		if (IsKeyDown(KEY_R)) {
 			fov_delta += 1;
+		}
+
+		// o for wider aperture, i for smaller
+		double aperture_delta = 0.0;
+		if (IsKeyDown(KEY_I)) {
+			aperture_delta -= 0.05;
+		}
+		if (IsKeyDown(KEY_O)) {
+			aperture_delta += 0.05;
+		}
+
+		// x for closer focus; z for farther
+		double focusdist_delta = 0.0;
+		if (IsKeyDown(KEY_X)) {
+			focusdist_delta -= 0.1;
+		}
+		if (IsKeyDown(KEY_C)) {
+			focusdist_delta += 0.1;
 		}
 
 		Vector3 camera_movement_vector = Vector3Add(
@@ -180,15 +199,15 @@ int main() {
 				Vector3Scale(world.camera.v, camera_lookat_delta.y)
 		);
 		camera_lookat_delta = Vector3Add(camera_movement_vector, camera_lookat_delta);
-		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0 || fov_delta != 0) {
+		if (Vector3Length(camera_delta) != 0 || Vector3Length(camera_lookat_delta) != 0 || fov_delta != 0 || aperture_delta != 0 || focusdist_delta != 0) {
 			Camera_update(
 				&(world.camera),
 				Vector3Add(world.camera.origin, camera_movement_vector),
 				Vector3Add(world.camera.lookat, camera_lookat_delta),
 				world.camera.vup,
 				world.camera.vfov + fov_delta,
-				world.camera.aperture,
-				world.camera.focus_dist,
+				world.camera.aperture + aperture_delta,
+				world.camera.focus_dist + focusdist_delta,
 				pic.width, pic.height
 			);
 			world.changed = true;
