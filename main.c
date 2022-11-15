@@ -187,9 +187,9 @@ int main() {
 
 		Vector3 camera_movement_vector = Vector3Add(
 			Vector3Add(
-				Vector3Scale(world.camera.w, camera_delta.z),
-				Vector3Scale(world.camera.u, camera_delta.x)),
-				Vector3Scale(world.camera.v, camera_delta.y)
+				Vector3Scale((Vector3){world.camera.w.x, 0, world.camera.w.z}, camera_delta.z),
+				Vector3Scale((Vector3){world.camera.u.x, 0, world.camera.u.z}, camera_delta.x)),
+				vec3(0, camera_delta.y, 0)
 		);
 
 		camera_lookat_delta = Vector3Add(
