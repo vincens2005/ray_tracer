@@ -16,14 +16,14 @@ typedef struct {
 	Vector3 normal;
 	double t;
 	bool front_face;
-	Mat *mat_ptr;
+	int mat_i;
 } HitRecord;
 
 // object type definitions
 typedef struct {
 	double radius;
 	Vector3 center;
-	Mat *mat_ptr;
+	int mat_i;
 } Sphere;
 
 typedef union {
@@ -67,76 +67,26 @@ bool Sphere_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRe
 
 	Vector3 outward_normal = Vector3Scale(Vector3Subtract(rec->p, s.center), 1.0 / s.radius);
 	set_face_normal(rec, r, outward_normal); // if the ray is inside the sphere the normal should be inverted
-	rec->mat_ptr = s.mat_ptr;
+	rec->mat_i = s.mat_i;
 
 	return true;
 }
 
 void Sphere_print(HittableObject o) {
 	Sphere s = o.sphere;
-	printf("Sphere (%2f, %2f, %2f) radius %2f\r\n", s.center.x, s.center.y, s.center.z, s.radius);
+	printf("Sphere (%2f, %2f, %2f) radius %2f material %d\r\n", s.center.x, s.center.y, s.center.z, s.radius, s.mat_i);
 }
 
-Hittable MakeSphere(Vector3 center, double radius, Mat* material) {
+Hittable MakeSphere(Vector3 center, double radius, int material) {
 	Hittable s;
 	s.hit = Sphere_hit;
 	s.print = Sphere_print;
 	s.object.sphere = (Sphere){radius, center};
-	s.object.sphere.mat_ptr = material;
+	s.object.sphere.mat_i = material;
 	return s;
 }
 
-typedef struct {
-	Hittable* objects;
-	int len;
-	bool changed;
-	Cam camera;
-} HittableList;
-
-void HittableList_clear(HittableList* list) {
-	free(list->objects);
-	list->objects = (Hittable*)malloc(sizeof(Hittable));
-	list->len = 1;
-}
-
-void HittableList_add(HittableList* list, Hittable obj) {
-	list->len++;
-	list->objects = (Hittable*)realloc(list->objects, sizeof(Hittable) * list->len);
-	list->objects[list->len - 1] = obj;
-}
-
-HittableList MakeHittableList() {
-	return (HittableList){
-		 (Hittable*)malloc(sizeof(Hittable)),
-		 0,
-		 false
-	};
-}
-
-bool HittableList_hit(HittableList* l, const Ray r, double t_min, double t_max, HitRecord* rec) {
-	HitRecord temp_rec;
-	bool hit_anything = false;
-	double closest_so_far = t_max;
-
-	for (int i = 0; i < l->len; i++) {
-		if (l->objects[i].hit(l->objects[i].object, r, t_min, closest_so_far, &temp_rec)) {
-			hit_anything = true;
-			closest_so_far = temp_rec.t;
-			*rec = temp_rec;
-		}
-	}
-	return hit_anything;
-}
-
-void HittableList_print(HittableList* l, char* tabulation) {
-	printf("%slist of length %d\r\n", tabulation, l->len);
-	for (int i = 0; i < l->len; i++) {
-		printf("%s\t", tabulation);
-		l->objects[i].print(l->objects[i].object);
-	}
-}
-
-// materials
+// material types
 typedef struct {
 	Vector3 albedo;
 } Lambertian;
@@ -167,6 +117,76 @@ struct Mat {
 	MaterialObject object;
 	bool (*scatter)(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered);
 };
+
+// world type and functions
+typedef struct {
+	Hittable* objects;
+	int len;
+	Mat* materials;
+	int mat_len;
+	bool changed;
+	Cam camera;
+} HittableList;
+
+void HittableList_clear(HittableList* list) {
+	free(list->objects);
+	list->objects = (Hittable*)malloc(sizeof(Hittable));
+	list->len = 1;
+}
+
+void HittableList_add(HittableList* list, Hittable obj) {
+	list->len++;
+	list->objects = (Hittable*)realloc(list->objects, sizeof(Hittable) * list->len);
+	list->objects[list->len - 1] = obj;
+}
+
+int HittableList_addMat(HittableList* list, Mat mat) {
+	printf("adding mat to workd\r\n");
+	list->mat_len++;
+	list->materials = (Mat*)realloc(list->materials, sizeof(Mat) * list->mat_len);
+	list->materials[list->mat_len - 1] = mat;
+	return list->mat_len - 1;
+}
+
+HittableList MakeHittableList() {
+	return (HittableList){
+		 (Hittable*)malloc(sizeof(Hittable)),
+		 0,
+		 (Mat*)malloc(sizeof(Mat)),
+		 0,
+		 false
+	};
+}
+
+bool HittableList_hit(HittableList* l, const Ray r, double t_min, double t_max, HitRecord* rec) {
+	HitRecord temp_rec;
+	bool hit_anything = false;
+	double closest_so_far = t_max;
+
+	for (int i = 0; i < l->len; i++) {
+		if (l->objects[i].hit(l->objects[i].object, r, t_min, closest_so_far, &temp_rec)) {
+			hit_anything = true;
+			closest_so_far = temp_rec.t;
+			*rec = temp_rec;
+		}
+	}
+	return hit_anything;
+}
+
+void HittableList_print(HittableList* l, char* tabulation) {
+	printf("%slist of length %d\r\n", tabulation, l->len);
+	for (int i = 0; i < l->len; i++) {
+		printf("%s\t", tabulation);
+		l->objects[i].print(l->objects[i].object);
+	}
+
+	printf("%smaterials:\r\n", tabulation);
+	for (int i = 0; i < l->mat_len; i++) {
+		printf("%s\tmaterial address: %p\r\n", tabulation, &(l->materials[i]));
+	}
+}
+
+// material functions
 
 bool Lambertian_scatter(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered) {
 	Lambertian l = o.lambertian;

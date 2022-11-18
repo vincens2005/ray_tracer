@@ -18,7 +18,7 @@ Vector3 ray_color(Ray r, HittableList* world, int depth) {
 	if (HittableList_hit(world, r, 0.001, INFINITY, &rec)) {
 		Ray scattered;
 		Vector3 attenuation = color(0, 0, 0);
-		if (rec.mat_ptr->scatter(rec.mat_ptr->object, r, &rec, &attenuation, &scattered)) {
+		if (world->materials[rec.mat_i].scatter(world->materials[rec.mat_i].object, r, &rec, &attenuation, &scattered)) {
 			return Vector3Multiply(attenuation, ray_color(scattered, world, depth - 1));
 		}
 		return attenuation;
@@ -76,31 +76,34 @@ int main() {
 
 	SetTargetFPS(60);
 
-	// make materials
-	printf("making materials\r\n");
-	Mat lambertiangray = MakeLambertian(color(0.7, 0.7, 0.7));
-	Mat redmetal = MakeMetal(color(0.7, 0.3, 0.3), 0.05);
-	Mat metal = MakeMetal(color(0.8, 0.8, 0.8), 0.3);
-	Mat glass = MakeDielectric(1.51);
-	Mat ground = MakeLambertian(color(0.2, 0.6, 0.1));
-	Mat purpleglow = MakeEmissive(color(0.8, 0.0, 1.0), 10);
 
 
 	// make world
 	printf("making world\r\n");
 	HittableList world = MakeHittableList();
+
+	// make materials
+	printf("making materials\r\n");
+	int lambertiangray = HittableList_addMat(&world, MakeLambertian(color(0.7, 0.7, 0.7)));
+	int redmetal = HittableList_addMat(&world, MakeMetal(color(0.7, 0.3, 0.3), 0.05));
+	int metal = HittableList_addMat(&world, MakeMetal(color(0.8, 0.8, 0.8), 0.3));
+	int glass = HittableList_addMat(&world, MakeDielectric(1.51));
+	int ground = HittableList_addMat(&world, MakeLambertian(color(0.2, 0.6, 0.1)));
+	int purpleglow = HittableList_addMat(&world, MakeEmissive(color(0.8, 0.0, 1.0), 10));
+
 	printf("making balls\r\n");
-	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, &ground));
+	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, ground));
 
-	HittableList_add(&world, MakeSphere(point3(-1, 0, -1), 0.5, &glass));
-	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, &lambertiangray));
-	HittableList_add(&world, MakeSphere(point3(1, 0, -1), 0.5, &redmetal));
+	HittableList_add(&world, MakeSphere(point3(-1, 0, -1), 0.5, glass));
+	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, lambertiangray));
+	HittableList_add(&world, MakeSphere(point3(1, 0, -1), 0.5, redmetal));
 
-	HittableList_add(&world, MakeSphere(point3(0.1, 1, -1.5), 0.34, &metal));
-	HittableList_add(&world, MakeSphere(point3(0.1, 1, 0.5), 0.34, &purpleglow));
+	HittableList_add(&world, MakeSphere(point3(0.1, 1, -1.5), 0.34, metal));
+	HittableList_add(&world, MakeSphere(point3(0.1, 1, 0.5), 0.34, purpleglow));
 
 	printf("balls initialized\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
+
 
 	Vector3 lookfrom = vec3(3, 3, 2);
 	Vector3 lookat = vec3(0, 0, -1);
