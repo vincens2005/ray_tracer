@@ -130,8 +130,11 @@ typedef struct {
 
 void HittableList_clear(HittableList* list) {
 	free(list->objects);
+	free(list->materials);
+	list->materials = (Mat*)malloc(sizeof(Mat));
 	list->objects = (Hittable*)malloc(sizeof(Hittable));
-	list->len = 1;
+	list->len = 0;
+	list->mat_len = 0;
 }
 
 void HittableList_add(HittableList* list, Hittable obj) {
@@ -141,7 +144,6 @@ void HittableList_add(HittableList* list, Hittable obj) {
 }
 
 int HittableList_addMat(HittableList* list, Mat mat) {
-	printf("adding mat to workd\r\n");
 	list->mat_len++;
 	list->materials = (Mat*)realloc(list->materials, sizeof(Mat) * list->mat_len);
 	list->materials[list->mat_len - 1] = mat;

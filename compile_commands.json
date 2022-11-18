@@ -1,0 +1,16 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Iinclude",
+      "-o",
+      "build/raytracer",
+      "main.c"
+    ],
+    "directory": "/home/vincent/Documents/code/ray_tracer",
+    "file": "/home/vincent/Documents/code/ray_tracer/main.c",
+    "output": "/home/vincent/Documents/code/ray_tracer/build/raytracer"
+  }
+]
