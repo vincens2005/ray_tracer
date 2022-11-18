@@ -82,7 +82,9 @@ int main() {
 	// make world
 	printf("making world\r\n");
 
-	HittableList world = sexy_scene();
+	HittableList world = random_scene();
+
+	printf("got world!\r\n");
 
 	Picture pic = MakePicture(0, 0);
 
@@ -180,6 +182,8 @@ int main() {
 			);
 			world.changed = true;
 		}
+
+		printf("rendering sample %d\r\n", pic.sample_count + 1);
 
 		BeginDrawing();
 			ClearBackground(BLACK);

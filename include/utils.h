@@ -17,6 +17,7 @@
 #define ndigits(i) ((int)(i != 0 ? floor(log10(abs(i))) + 1 : 1))
 #define ray(o, v) ((Ray){o, v})
 #define printvector(v) (printf("(%f, %f, %f)", v.x, v.y, v.z))
+#define random_color() Vector3Random()
 
 typedef struct {
 	int width;
