@@ -1,6 +1,6 @@
 #ifndef SCENES
 #define SCENES
-#include "world.h"
+#include "hittable_list.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "utils.h"
@@ -80,7 +80,7 @@ HittableList random_scene() {
 			}
 		}
 	}
-	
+
 	printf("random scene made!\r\n");
 
 	int m1 = HittableList_addMat(&world, MakeDielectric(1.5));

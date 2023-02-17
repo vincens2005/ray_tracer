@@ -18,6 +18,7 @@
 #define ray(o, v) ((Ray){o, v})
 #define printvector(v) (printf("(%f, %f, %f)", v.x, v.y, v.z))
 #define random_color() Vector3Random()
+#define vec2arr(v) {v.x, v.y, v.z} // this is a little iffy
 
 typedef struct {
 	int width;

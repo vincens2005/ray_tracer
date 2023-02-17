@@ -26,13 +26,20 @@ typedef struct {
 	int mat_i;
 } Sphere;
 
+typedef struct {
+	Vector3 minimum;
+	Vector3 maximum;
+} Aabb;
+
 typedef union {
 	Sphere sphere;
+	Aabb aabb;
 } HittableObject;
 
 typedef struct {
 	HittableObject object;
 	bool (*hit)(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec);
+	bool (*bounding_box)(HittableObject o, Aabb* output_box);
 	void (*print)(HittableObject o);
 } Hittable;
 
@@ -77,13 +84,57 @@ void Sphere_print(HittableObject o) {
 	printf("Sphere (%2f, %2f, %2f) radius %2f material %d\r\n", s.center.x, s.center.y, s.center.z, s.radius, s.mat_i);
 }
 
+bool Sphere_boundingbox(HittableObject o, Aabb* output_box) {
+	Sphere s = o.sphere;
+	output_box->minimum = Vector3Subtract(s.center, vec3(s.radius, s.radius, s.radius));
+	output_box->maximum = Vector3Add(s.center, vec3(s.radius, s.radius, s.radius));
+	return true;
+}
+
 Hittable MakeSphere(Vector3 center, double radius, int material) {
 	Hittable s;
 	s.hit = Sphere_hit;
 	s.print = Sphere_print;
+	s.bounding_box = Sphere_boundingbox;
 	s.object.sphere = (Sphere){radius, center};
 	s.object.sphere.mat_i = material;
 	return s;
+}
+
+void Aabb_print(HittableObject o) {
+	Aabb a = o.aabb;
+	printf("AABB min (%2f, %2f, %2f) max (%2f, %2f, %2f)\r\n", a.minimum.x, a.minimum.y, a.minimum.z, a.maximum.x, a.maximum.y, a.maximum.z);
+}
+
+bool Aabb_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec) {
+	Aabb a = o.aabb;
+	double min[3] = vec2arr(a.minimum);
+	double max[3] = vec2arr(a.maximum);
+
+	double r_origin[3] = vec2arr(r.position);
+	double r_direction[3] = vec2arr(r.direction);
+
+	for (int i = 0; i < 3; i++) {
+		double t0 = fmin((min[i] - r_origin[i]) / r_direction[i],
+			(max[i] - r_origin[i]) / r_direction[i]);
+		double t1 = fmax((min[i] - r_origin[i]) / r_direction[i],
+			(max[i] - r_origin[i]) / r_direction[i]);
+
+		t_min = fmax(t0, t_min);
+		t_max = fmin(t1, t_max);
+
+		if (t_min >= t_max)
+			return false;
+	}
+	return true;
+}
+
+Hittable MakeAabb(Vector3 minimum, Vector3 maximum) {
+	Hittable a;
+	a.hit = Aabb_hit;
+	a.print = Aabb_print;
+	a.object.aabb = (Aabb){minimum, maximum};
+	return a;
 }
 
 // material types
@@ -117,76 +168,6 @@ struct Mat {
 	MaterialObject object;
 	bool (*scatter)(MaterialObject o, const Ray r_in, HitRecord *rec, Vector3 *attenuation, Ray *scattered);
 };
-
-// world type and functions
-typedef struct {
-	Hittable* objects;
-	int len;
-	Mat* materials;
-	int mat_len;
-	bool changed;
-	Cam camera;
-} HittableList;
-
-void HittableList_clear(HittableList* list) {
-	free(list->objects);
-	free(list->materials);
-	list->materials = (Mat*)malloc(sizeof(Mat));
-	list->objects = (Hittable*)malloc(sizeof(Hittable));
-	list->len = 0;
-	list->mat_len = 0;
-}
-
-void HittableList_add(HittableList* list, Hittable obj) {
-	list->len++;
-	list->objects = (Hittable*)realloc(list->objects, sizeof(Hittable) * list->len);
-	list->objects[list->len - 1] = obj;
-}
-
-int HittableList_addMat(HittableList* list, Mat mat) {
-	list->mat_len++;
-	list->materials = (Mat*)realloc(list->materials, sizeof(Mat) * list->mat_len);
-	list->materials[list->mat_len - 1] = mat;
-	return list->mat_len - 1;
-}
-
-HittableList MakeHittableList() {
-	return (HittableList){
-		 (Hittable*)malloc(sizeof(Hittable)),
-		 0,
-		 (Mat*)malloc(sizeof(Mat)),
-		 0,
-		 false
-	};
-}
-
-bool HittableList_hit(HittableList* l, const Ray r, double t_min, double t_max, HitRecord* rec) {
-	HitRecord temp_rec;
-	bool hit_anything = false;
-	double closest_so_far = t_max;
-
-	for (int i = 0; i < l->len; i++) {
-		if (l->objects[i].hit(l->objects[i].object, r, t_min, closest_so_far, &temp_rec)) {
-			hit_anything = true;
-			closest_so_far = temp_rec.t;
-			*rec = temp_rec;
-		}
-	}
-	return hit_anything;
-}
-
-void HittableList_print(HittableList* l, char* tabulation) {
-	printf("%slist of length %d\r\n", tabulation, l->len);
-	for (int i = 0; i < l->len; i++) {
-		printf("%s\t", tabulation);
-		l->objects[i].print(l->objects[i].object);
-	}
-
-	printf("%smaterials:\r\n", tabulation);
-	for (int i = 0; i < l->mat_len; i++) {
-		printf("%s\tmaterial address: %p\r\n", tabulation, &(l->materials[i]));
-	}
-}
 
 // material functions
 

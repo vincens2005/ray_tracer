@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "utils.h"
-#include "world.h"
+#include "hittable_list.h"
 #include "camera.h"
 #include "scenes.h"
 
@@ -82,7 +82,7 @@ int main() {
 	// make world
 	printf("making world\r\n");
 
-	HittableList world = random_scene();
+	HittableList world = sexy_scene();
 
 	printf("got world!\r\n");
 
