@@ -214,13 +214,18 @@ Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 
 	Aabb box_left, box_right;
 
-	Aabb box;
+	if (!left->bounding_box(left->object, &box_left) || !right->bounding_box(right->object, &box_right)) {
+		printf("SOMEHTHING HAS GONE TERRIBLY WRONG WHILE BUILDING THE BVH\r\n");
+		exit();
+	}
+
+	Aabb box = surrounding_box(box_left, box_right);
 
 	Hittable b;
 	b.object.bvh_node = (BVHNode){left, right, box};
 	b.hit = BVHNode_hit;
 	b.print = BVHNode_print;
-	b.bounding_box = box;
+	b.bounding_box = BVHNode_boundingbox;
 }
 
 // material types
