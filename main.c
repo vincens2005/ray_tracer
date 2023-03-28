@@ -41,6 +41,7 @@ void draw_image(HittableList* world, Picture* pic) {
 		Camera_update(&(world->camera), world->camera.origin, world->camera.lookat, world->camera.vup, world->camera.vfov, world->camera.aperture, world->camera.focus_dist, image_width, image_height);
 		world->changed = false; // acknowledge change
 	}
+
 	if (pic->sample_count < samples_per_pixel)
 		pic->sample_count++;
 
@@ -77,7 +78,7 @@ int main() {
 
 	SetTargetFPS(60);
 
-
+	srand(time(NULL));
 
 	// make world
 	printf("making world\r\n");

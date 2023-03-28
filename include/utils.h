@@ -37,7 +37,7 @@ Picture MakePicture(int width, int height) {
 	p.color = (Vector3**)malloc(width * sizeof(Vector3*));
 
 	for (int i = 0; i < width; i++) {
-		p.color[i] = (Vector3*)malloc(width * sizeof(Vector3));
+		p.color[i] = (Vector3*)malloc(height * sizeof(Vector3));
 	}
 
 	return p;
@@ -126,6 +126,10 @@ Vector3 random_in_unit_disk() {
 
 Vector3 random_unit_vector() {
     return UnitVector(random_in_unit_sphere());
+}
+
+int randint(int min, int max) {
+	return (rand() / (1 + RAND_MAX)) * (max - min) + min;
 }
 
 double reflectance(double cosine, double ref_index) { // schlick approximation

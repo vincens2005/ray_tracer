@@ -78,4 +78,18 @@ void HittableList_print(HittableList* l, char* tabulation) {
 		printf("%s\tmaterial address: %p\r\n", tabulation, &(l->materials[i]));
 	}
 }
+
+bool HittableList_boundingbox(HittableList* l, Aabb* output_box) {
+	if (l->len == 0) return false;
+
+	Aabb temp_box;
+	bool first_box = true;
+
+	for (int i = 0; i < l->len; i++) {
+		if (!l->objects[i].bounding_box(l->objects[i].object, &temp_box)) return false;
+		*output_box = first_box ? temp_box : surrounding_box(output_box, &temp_box);
+		first_box = false;
+	}
+	return true;
+}
 #endif

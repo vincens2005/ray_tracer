@@ -31,9 +31,16 @@ typedef struct {
 	Vector3 maximum;
 } Aabb;
 
+typedef struct {
+	void* left; // these are void pointers because the Hittable type has not yet been defined. I know this is cursed but YOLO or whatever
+	void* right;
+	Aabb box;
+} BVHNode;
+
 typedef union {
 	Sphere sphere;
 	Aabb aabb;
+	BVHNode bvh_node;
 } HittableObject;
 
 typedef struct {
@@ -61,7 +68,7 @@ bool Sphere_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRe
 	double sqrtd = sqrt(discriminant);
 
 	double t = (-half_b - sqrtd) / a; // goofy ahh quadratic formula
-	// Find the nearest t that lies in the acceptable range.
+	// find the nearest t that lies in the acceptable range.
 	if (t <= t_min || t >= t_max) {
 		t = (-half_b + sqrtd) / a;
 		if (t <= t_min || t >= t_max) {
@@ -129,12 +136,91 @@ bool Aabb_hit(HittableObject o, const Ray r, double t_min, double t_max, HitReco
 	return true;
 }
 
+Aabb surrounding_box(Aabb *box0, Aabb *box1) {
+	Vector3 small = {
+		fmin(box0->minimum.x, box1->minimum.x),
+		fmin(box0->minimum.y, box1->minimum.y),
+		fmin(box0->minimum.z, box1->minimum.z)
+	};
+
+	Vector3 big = {
+		fmax(box0->maximum.x, box1->maximum.x),
+		fmax(box0->maximum.y, box1->maximum.y),
+		fmax(box0->maximum.z, box1->maximum.z)
+	};
+
+	return (Aabb){small, big};
+}
+
 Hittable MakeAabb(Vector3 minimum, Vector3 maximum) {
 	Hittable a;
 	a.hit = Aabb_hit;
 	a.print = Aabb_print;
 	a.object.aabb = (Aabb){minimum, maximum};
 	return a;
+}
+
+bool BVHNode_boundingbox(HittableObject o, Aabb* output_box) {
+	output_box* = o.bvh_node.box;
+	return true;
+}
+
+void BVHNode_print(HittableObject o) {
+	printf("BVH Node:\r\n\t");
+	o.bvh_node.left->print(o.bvh_node.left->object);
+	o.bvh_node.right->print(o.bvh_node.right->object);
+}
+
+bool BVHNode_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec) {
+	HittableObject box;
+	box.aabb = o.bvh_node.box;
+	if(!Aabb_hit(box, r, t_min, t_max, rec))
+		return false;
+
+	bool hit_left = o.bvh_node.left->hit(o.bvh_node.left->object, r, t_min, t_max, rec);
+	bool hit_right = o.bvh_node.right->hit(o.bvh_node.right->object, r, t_min, hit_left ? rec->t : t_max, rec);
+
+	return hit_left || hit_right;
+}
+
+Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
+	Hittable* left, right;
+	size_t object_span = end - start;
+
+	int axis = rand() % 3;
+
+	void (*comparator)(Hittable a, Hittable b);
+
+	if (object_span == 1) {
+		left = right = objects[start];
+	}
+	else if (object_span == 2) {
+		if (comparator(objects[start], objects[start+1])) {
+			left = objects[start];
+			right = objects[start + 1];
+		}
+		else {
+			left = objects[start + 1];
+			right = objects[start];
+		}
+	}
+	else {
+		qsort(objects + start, object_span, sizeof(Hittable), comparator);
+
+		size_t mid = start + object_span / 2;
+		left = MakeBVHNode(objects, start, mid);
+		right = MakeBVHNode(objects, mid, end);
+	}
+
+	Aabb box_left, box_right;
+
+	Aabb box;
+
+	Hittable b;
+	b.object.bvh_node = (BVHNode){left, right, box};
+	b.hit = BVHNode_hit;
+	b.print = BVHNode_print;
+	b.bounding_box = box;
 }
 
 // material types
