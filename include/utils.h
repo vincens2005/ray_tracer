@@ -129,7 +129,7 @@ Vector3 random_unit_vector() {
 }
 
 int randint(int min, int max) {
-	return (rand() / (1 + RAND_MAX)) * (max - min) + min;
+	return (rand() / (RAND_MAX)) * (max - min) + min;
 }
 
 double reflectance(double cosine, double ref_index) { // schlick approximation

@@ -161,14 +161,14 @@ Hittable MakeAabb(Vector3 minimum, Vector3 maximum) {
 }
 
 bool BVHNode_boundingbox(HittableObject o, Aabb* output_box) {
-	output_box* = o.bvh_node.box;
+	*output_box = o.bvh_node.box;
 	return true;
 }
 
 void BVHNode_print(HittableObject o) {
 	printf("BVH Node:\r\n\t");
-	o.bvh_node.left->print(o.bvh_node.left->object);
-	o.bvh_node.right->print(o.bvh_node.right->object);
+	(*(Hittable*)(o.bvh_node.left)).print((*(Hittable*)(o.bvh_node.left)).object);
+	(*(Hittable*)(o.bvh_node.right)).print((*(Hittable*)(o.bvh_node.right)).object);
 }
 
 bool BVHNode_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec) {
@@ -177,31 +177,58 @@ bool BVHNode_hit(HittableObject o, const Ray r, double t_min, double t_max, HitR
 	if(!Aabb_hit(box, r, t_min, t_max, rec))
 		return false;
 
-	bool hit_left = o.bvh_node.left->hit(o.bvh_node.left->object, r, t_min, t_max, rec);
-	bool hit_right = o.bvh_node.right->hit(o.bvh_node.right->object, r, t_min, hit_left ? rec->t : t_max, rec);
+	bool hit_left = (*(Hittable*)(o.bvh_node.left)).hit((*(Hittable*)(o.bvh_node.left)).object, r, t_min, t_max, rec);
+	bool hit_right = (*(Hittable*)(o.bvh_node.right)).hit((*(Hittable*)(o.bvh_node.right)).object, r, t_min, hit_left ? rec->t : t_max, rec);
 
 	return hit_left || hit_right;
 }
 
+inline int box_compare(Hittable* a, Hittable *b, int axis) {
+	Aabb box_a;
+	Aabb box_b;
+
+	if (!a->bounding_box(a->object, &box_a) || !b->bounding_box(b->object, &box_b)) {
+		printf("SOMETHING HAS GONE TERRIBLY WRONG COMPARING BVH NODES\r\n");
+		exit(1);
+	}
+
+	double a_min[3] = vec2arr(box_a.minimum);
+	double b_min[3] = vec2arr(box_b.minimum);
+
+	return a_min[axis] < b_min[axis] ? 1 : -1;
+}
+
+int box_x_compare(const void* a, const void* b) {
+	return box_compare((Hittable*)a, (Hittable*)b, 0);
+}
+
+int box_y_compare(const void* a, const void* b) {
+	return box_compare((Hittable*)a, (Hittable*)b, 1);
+}
+
+int box_z_compare(const void* a, const void* b) {
+	return box_compare((Hittable*)a, (Hittable*)b, 2);
+}
+
 Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
-	Hittable* left, right;
+	Hittable *left, *right;
 	size_t object_span = end - start;
 
 	int axis = rand() % 3;
 
-	void (*comparator)(Hittable a, Hittable b);
+	int (*comparator)(const void* a, const void* b) = axis == 0 ? box_x_compare : axis == 1 ? box_y_compare : box_z_compare;
 
 	if (object_span == 1) {
-		left = right = objects[start];
+		left = right = objects + start;
 	}
 	else if (object_span == 2) {
-		if (comparator(objects[start], objects[start+1])) {
-			left = objects[start];
-			right = objects[start + 1];
+		if (comparator(objects + start, objects + start + 1)) {
+			left = &objects[start];
+			right = &objects[start + 1];
 		}
 		else {
-			left = objects[start + 1];
-			right = objects[start];
+			left = &objects[start + 1];
+			right = &objects[start];
 		}
 	}
 	else {
@@ -216,16 +243,18 @@ Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 
 	if (!left->bounding_box(left->object, &box_left) || !right->bounding_box(right->object, &box_right)) {
 		printf("SOMEHTHING HAS GONE TERRIBLY WRONG WHILE BUILDING THE BVH\r\n");
-		exit();
+		exit(1);
 	}
 
-	Aabb box = surrounding_box(box_left, box_right);
+	Aabb box = surrounding_box(&box_left, &box_right);
 
 	Hittable b;
 	b.object.bvh_node = (BVHNode){left, right, box};
 	b.hit = BVHNode_hit;
 	b.print = BVHNode_print;
 	b.bounding_box = BVHNode_boundingbox;
+
+	return b;
 }
 
 // material types

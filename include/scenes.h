@@ -28,7 +28,11 @@ HittableList sexy_scene() {
 	HittableList_add(&world, MakeSphere(point3(0.1, 1, -1.5), 0.34, metal));
 	HittableList_add(&world, MakeSphere(point3(0.1, 1, 0.5), 0.34, purpleglow));
 
-	printf("balls initialized\r\n\tworld:\r\n");
+	printf("building BVH...\r\n");
+
+	Hittable BVH = MakeBVHNode(world.objects, 0, world.len);
+
+	printf("BVH built!\r\n\tworld:\r\n");
 	HittableList_print(&world, "\t");
 
 
