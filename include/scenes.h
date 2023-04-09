@@ -21,19 +21,22 @@ HittableList sexy_scene() {
 	printf("making balls\r\n");
 	HittableList_add(&world, MakeSphere(point3(0, -100.5, -1), 100, ground));
 
-	HittableList_add(&world, MakeSphere(point3(-1, 0, -1), 0.5, glass));
+	// HittableList_add(&world, MakeSphere(point3(-1, 0, -1), 0.5, glass));
 	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, lambertiangray));
 	HittableList_add(&world, MakeSphere(point3(1, 0, -1), 0.5, redmetal));
 
-	HittableList_add(&world, MakeSphere(point3(0.1, 1, -1.5), 0.34, metal));
-	HittableList_add(&world, MakeSphere(point3(0.1, 1, 0.5), 0.34, purpleglow));
+	// HittableList_add(&world, MakeSphere(point3(0.1, 1, -1.5), 0.34, metal));
+	// HittableList_add(&world, MakeSphere(point3(0.1, 1, 0.5), 0.34, purpleglow));
 
 	printf("building BVH...\r\n");
 
-	Hittable BVH = MakeBVHNode(world.objects, 0, world.len);
+	world.first_child = MakeBVHNode(world.objects, &world.bvh_nodes, &world.bvh_len, 0, world.len);
 
-	printf("BVH built!\r\n\tworld:\r\n");
-	HittableList_print(&world, "\t");
+	printf("BVH built!\r\n BVH:\r\n");
+	BVHNode_print(world.first_child->object);
+	// printf("BVH built!\r\n\tworld:\r\n");
+
+	// HittableList_print(&world, "\t");
 
 
 	Vector3 lookfrom = vec3(3, 3, 2);

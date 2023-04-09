@@ -50,7 +50,6 @@ typedef struct {
 	void (*print)(HittableObject o);
 } Hittable;
 
-
 void set_face_normal(HitRecord *rec, const Ray r, const Vector3 outward_normal) {
 	rec->front_face = dot(r.direction, outward_normal) < 0;
 	rec->normal = rec->front_face ? outward_normal : Vector3Negate(outward_normal);
@@ -168,6 +167,7 @@ bool BVHNode_boundingbox(HittableObject o, Aabb* output_box) {
 void BVHNode_print(HittableObject o) {
 	printf("BVH Node:\r\n\t");
 	(*(Hittable*)(o.bvh_node.left)).print((*(Hittable*)(o.bvh_node.left)).object);
+	printf("\t");
 	(*(Hittable*)(o.bvh_node.right)).print((*(Hittable*)(o.bvh_node.right)).object);
 }
 
@@ -183,7 +183,7 @@ bool BVHNode_hit(HittableObject o, const Ray r, double t_min, double t_max, HitR
 	return hit_left || hit_right;
 }
 
-inline int box_compare(Hittable* a, Hittable *b, int axis) {
+int box_compare(Hittable* a, Hittable *b, int axis) {
 	Aabb box_a;
 	Aabb box_b;
 
@@ -210,7 +210,8 @@ int box_z_compare(const void* a, const void* b) {
 	return box_compare((Hittable*)a, (Hittable*)b, 2);
 }
 
-Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
+
+Hittable* MakeBVHNode(Hittable* objects, Hittable** nodes, int *n_nodes, size_t start, size_t end) {
 	Hittable *left, *right;
 	size_t object_span = end - start;
 
@@ -235,8 +236,8 @@ Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 		qsort(objects + start, object_span, sizeof(Hittable), comparator);
 
 		size_t mid = start + object_span / 2;
-		left = MakeBVHNode(objects, start, mid);
-		right = MakeBVHNode(objects, mid, end);
+		left = MakeBVHNode(objects, nodes, n_nodes, start, mid);
+		right = MakeBVHNode(objects, nodes, n_nodes, mid, end);
 	}
 
 	Aabb box_left, box_right;
@@ -254,8 +255,15 @@ Hittable MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 	b.print = BVHNode_print;
 	b.bounding_box = BVHNode_boundingbox;
 
-	return b;
+	BVHNode_print(b.object);
+
+	(*n_nodes)++;
+
+	*nodes = (Hittable*)realloc(*nodes, sizeof(Hittable) * *n_nodes);
+	(*nodes)[*n_nodes - 1] = b;
+	return nodes[*n_nodes - 1]; // realloc changes memory addresses. I wanna kms
 }
+
 
 // material types
 typedef struct {

@@ -12,6 +12,9 @@
 // HittableList type and functions
 typedef struct {
 	Hittable* objects;
+	Hittable* bvh_nodes; // this array is used to create arbitrary pointers to nodes
+	Hittable* first_child; // first BVH node
+	int bvh_len;
 	int len;
 	Mat* materials;
 	int mat_len;
@@ -44,6 +47,9 @@ int HittableList_addMat(HittableList* list, Mat mat) {
 HittableList MakeHittableList() {
 	return (HittableList){
 		 (Hittable*)malloc(sizeof(Hittable)),
+		 (Hittable*)malloc(sizeof(Hittable)),
+		 (Hittable*)malloc(sizeof(Hittable)),
+		 0,
 		 0,
 		 (Mat*)malloc(sizeof(Mat)),
 		 0,
@@ -52,10 +58,11 @@ HittableList MakeHittableList() {
 }
 
 bool HittableList_hit(HittableList* l, const Ray r, double t_min, double t_max, HitRecord* rec) {
-	HitRecord temp_rec;
+	// HitRecord temp_rec;
+	return l->first_child->hit(l->first_child->object, r, t_min, t_max, rec);
+	/*
 	bool hit_anything = false;
 	double closest_so_far = t_max;
-
 	for (int i = 0; i < l->len; i++) {
 		if (l->objects[i].hit(l->objects[i].object, r, t_min, closest_so_far, &temp_rec)) {
 			hit_anything = true;
@@ -63,7 +70,8 @@ bool HittableList_hit(HittableList* l, const Ray r, double t_min, double t_max, 
 			*rec = temp_rec;
 		}
 	}
-	return hit_anything;
+	*/
+	// return hit_anything;
 }
 
 void HittableList_print(HittableList* l, char* tabulation) {
