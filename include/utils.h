@@ -19,6 +19,7 @@
 #define printvector(v) (printf("(%f, %f, %f)", v.x, v.y, v.z))
 #define random_color() Vector3Random()
 #define vec2arr(v) {v.x, v.y, v.z} // this is a little iffy
+#define logbasen(n, x) (log(x) / log(n))
 
 typedef struct {
 	int width;
@@ -60,10 +61,6 @@ void Picture_free(Picture *p) {
 	p->sample_count = 0;
 	p->width = 0.0;
 	p->height = 0.0;
-}
-
-int bvh_size(int n) {
-	return n + (n % 2 == 0 ? 1 : 2);
 }
 
 Vector3 Ray_at(Ray r, double t) {

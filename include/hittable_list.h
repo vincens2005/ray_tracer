@@ -12,9 +12,7 @@
 // HittableList type and functions
 typedef struct {
 	Hittable* objects;
-	Hittable* bvh_nodes; // this array is used to create arbitrary pointers to nodes
 	Hittable* first_child; // first BVH node
-	int bvh_len;
 	int len;
 	Mat* materials;
 	int mat_len;
@@ -33,8 +31,7 @@ void HittableList_clear(HittableList* list) {
 
 void HittableList_buildBVH(HittableList* list) {
 	printf("building BVH...\r\n");
-	list->bvh_nodes = (Hittable*)malloc(sizeof(Hittable) * bvh_size(list->len));
-	list->first_child = MakeBVHNode(list->objects, list->bvh_nodes, &(list->bvh_len), 0, list->len);
+	list->first_child = MakeBVHNode(list->objects, 0, list->len);
 }
 
 void HittableList_add(HittableList* list, Hittable obj) {
@@ -54,8 +51,6 @@ HittableList MakeHittableList() {
 	return (HittableList){
 		 (Hittable*)malloc(sizeof(Hittable)),
 		 (Hittable*)malloc(sizeof(Hittable)),
-		 (Hittable*)malloc(sizeof(Hittable)),
-		 0,
 		 0,
 		 (Mat*)malloc(sizeof(Mat)),
 		 0,
@@ -84,7 +79,7 @@ void HittableList_print(HittableList* l, char* tabulation) {
 	printf("%slist of length %d\r\n", tabulation, l->len);
 	for (int i = 0; i < l->len; i++) {
 		printf("%s\t", tabulation);
-		l->objects[i].print(l->objects[i].object);
+		l->objects[i].print(l->objects[i].object, tabulation);
 	}
 
 	printf("%smaterials:\r\n", tabulation);

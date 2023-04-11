@@ -33,7 +33,7 @@ HittableList sexy_scene() {
 	HittableList_buildBVH(&world);
 
 	printf("BVH built!\r\n BVH:\r\n");
-	BVHNode_print(world.first_child->object);
+	BVHNode_print(world.first_child->object, "");
 	// printf("BVH built!\r\n\tworld:\r\n");
 
 	// HittableList_print(&world, "\t");
@@ -103,6 +103,9 @@ HittableList random_scene() {
 	// HittableList_print(&world, "\t");
 
 	HittableList_buildBVH(&world);
+	BVHNode_print(world.first_child->object, "");
+
+	// printf("number of objects: %d\r\nnumber of BVH nodes: %d\r\n", world.len);
 
 	Vector3 lookfrom = point3(13, 2, 3);
 	Vector3 lookat = point3(0, 0, 0);

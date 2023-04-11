@@ -83,7 +83,7 @@ int main() {
 	// make world
 	printf("making world\r\n");
 
-	HittableList world = sexy_scene();
+	HittableList world = random_scene();
 
 	printf("got world!\r\n");
 

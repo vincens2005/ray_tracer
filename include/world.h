@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 #include "utils.h"
 #include "camera.h"
 
@@ -47,7 +48,7 @@ typedef struct {
 	HittableObject object;
 	bool (*hit)(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec);
 	bool (*bounding_box)(HittableObject o, Aabb* output_box);
-	void (*print)(HittableObject o);
+	void (*print)(HittableObject o, char* tab);
 } Hittable;
 
 void set_face_normal(HitRecord *rec, const Ray r, const Vector3 outward_normal) {
@@ -85,7 +86,7 @@ bool Sphere_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRe
 	return true;
 }
 
-void Sphere_print(HittableObject o) {
+void Sphere_print(HittableObject o, char* tab) {
 	Sphere s = o.sphere;
 	printf("Sphere (%2f, %2f, %2f) radius %2f material %d\r\n", s.center.x, s.center.y, s.center.z, s.radius, s.mat_i);
 }
@@ -107,7 +108,7 @@ Hittable MakeSphere(Vector3 center, double radius, int material) {
 	return s;
 }
 
-void Aabb_print(HittableObject o) {
+void Aabb_print(HittableObject o, char* tab) {
 	Aabb a = o.aabb;
 	printf("AABB min (%2f, %2f, %2f) max (%2f, %2f, %2f)\r\n", a.minimum.x, a.minimum.y, a.minimum.z, a.maximum.x, a.maximum.y, a.maximum.z);
 }
@@ -164,11 +165,14 @@ bool BVHNode_boundingbox(HittableObject o, Aabb* output_box) {
 	return true;
 }
 
-void BVHNode_print(HittableObject o) {
-	printf("BVH Node:\r\n\t");
-	(*(Hittable*)(o.bvh_node.left)).print((*(Hittable*)(o.bvh_node.left)).object);
-	printf("\t");
-	(*(Hittable*)(o.bvh_node.right)).print((*(Hittable*)(o.bvh_node.right)).object);
+void BVHNode_print(HittableObject o, char* tab) {
+	char* new_tab = malloc((strlen(tab) + 1) * sizeof(char));
+	sprintf(new_tab, "%s\t", tab);
+
+	printf("BVH Node:\r\n%s\t", tab);
+	(*(Hittable*)(o.bvh_node.left)).print((*(Hittable*)(o.bvh_node.left)).object, new_tab);
+	printf("%s\t", tab);
+	(*(Hittable*)(o.bvh_node.right)).print((*(Hittable*)(o.bvh_node.right)).object, new_tab);
 }
 
 bool BVHNode_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec) {
@@ -211,7 +215,7 @@ int box_z_compare(const void* a, const void* b) {
 }
 
 
-Hittable* MakeBVHNode(Hittable* objects, Hittable* nodes, int *n_nodes, size_t start, size_t end) {
+Hittable* MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 	Hittable *left, *right;
 	size_t object_span = end - start;
 
@@ -236,8 +240,8 @@ Hittable* MakeBVHNode(Hittable* objects, Hittable* nodes, int *n_nodes, size_t s
 		qsort(objects + start, object_span, sizeof(Hittable), comparator);
 
 		size_t mid = start + object_span / 2;
-		left = MakeBVHNode(objects, nodes, n_nodes, start, mid);
-		right = MakeBVHNode(objects, nodes, n_nodes, mid, end);
+		left = MakeBVHNode(objects, start, mid);
+		right = MakeBVHNode(objects, mid, end);
 	}
 
 	Aabb box_left, box_right;
@@ -249,18 +253,14 @@ Hittable* MakeBVHNode(Hittable* objects, Hittable* nodes, int *n_nodes, size_t s
 
 	Aabb box = surrounding_box(&box_left, &box_right);
 
-	Hittable b;
-	b.object.bvh_node = (BVHNode){left, right, box};
-	b.hit = BVHNode_hit;
-	b.print = BVHNode_print;
-	b.bounding_box = BVHNode_boundingbox;
+	Hittable* b = malloc(sizeof(Hittable));
+	b->object.bvh_node = (BVHNode){left, right, box};
+	b->hit = BVHNode_hit;
+	b->print = BVHNode_print;
+	b->bounding_box = BVHNode_boundingbox;
 
-	BVHNode_print(b.object);
 
-	(*n_nodes)++;
-
-	nodes[*n_nodes - 1] = b;
-	return &(nodes[*n_nodes - 1]);
+	return b;
 }
 
 
