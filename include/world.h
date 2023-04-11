@@ -211,7 +211,7 @@ int box_z_compare(const void* a, const void* b) {
 }
 
 
-Hittable* MakeBVHNode(Hittable* objects, Hittable** nodes, int *n_nodes, size_t start, size_t end) {
+Hittable* MakeBVHNode(Hittable* objects, Hittable* nodes, int *n_nodes, size_t start, size_t end) {
 	Hittable *left, *right;
 	size_t object_span = end - start;
 
@@ -259,9 +259,8 @@ Hittable* MakeBVHNode(Hittable* objects, Hittable** nodes, int *n_nodes, size_t 
 
 	(*n_nodes)++;
 
-	*nodes = (Hittable*)realloc(*nodes, sizeof(Hittable) * *n_nodes);
-	(*nodes)[*n_nodes - 1] = b;
-	return nodes[*n_nodes - 1]; // realloc changes memory addresses. I wanna kms
+	nodes[*n_nodes - 1] = b;
+	return &(nodes[*n_nodes - 1]);
 }
 
 

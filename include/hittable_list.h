@@ -31,6 +31,12 @@ void HittableList_clear(HittableList* list) {
 	list->mat_len = 0;
 }
 
+void HittableList_buildBVH(HittableList* list) {
+	printf("building BVH...\r\n");
+	list->bvh_nodes = (Hittable*)malloc(sizeof(Hittable) * bvh_size(list->len));
+	list->first_child = MakeBVHNode(list->objects, list->bvh_nodes, &(list->bvh_len), 0, list->len);
+}
+
 void HittableList_add(HittableList* list, Hittable obj) {
 	list->len++;
 	list->objects = (Hittable*)realloc(list->objects, sizeof(Hittable) * list->len);

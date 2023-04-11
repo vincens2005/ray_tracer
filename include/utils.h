@@ -62,6 +62,9 @@ void Picture_free(Picture *p) {
 	p->height = 0.0;
 }
 
+int bvh_size(int n) {
+	return n + (n % 2 == 0 ? 1 : 2);
+}
 
 Vector3 Ray_at(Ray r, double t) {
 	return Vector3Add(r.position, Vector3Scale(r.direction, t));
