@@ -259,9 +259,9 @@ Hittable* MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 	b->print = BVHNode_print;
 	b->bounding_box = BVHNode_boundingbox;
 
-
-	return b;
+	return b; // this can cause a memory leak if we ever need to update the BVH, so BEWARE
 }
+
 
 
 // material types
