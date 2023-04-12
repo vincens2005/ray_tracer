@@ -192,6 +192,7 @@ void BVHNode_print(HittableObject o, char* tab) {
 	(*(Hittable*)(o.bvh_node.left)).print((*(Hittable*)(o.bvh_node.left)).object, new_tab);
 	printf("%s\t", tab);
 	(*(Hittable*)(o.bvh_node.right)).print((*(Hittable*)(o.bvh_node.right)).object, new_tab);
+	free(new_tab);
 }
 
 bool BVHNode_hit(HittableObject o, const Ray r, double t_min, double t_max, HitRecord *rec) {
