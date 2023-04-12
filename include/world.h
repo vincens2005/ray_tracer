@@ -121,6 +121,7 @@ bool Aabb_hit(HittableObject o, const Ray r, double t_min, double t_max, HitReco
 	double r_origin[3] = vec2arr(r.position);
 	double r_direction[3] = vec2arr(r.direction);
 
+	/* // unoptimized, but more readable hit method
 	for (int i = 0; i < 3; i++) {
 		double t0 = fmin((min[i] - r_origin[i]) / r_direction[i],
 			(max[i] - r_origin[i]) / r_direction[i]);
@@ -131,6 +132,24 @@ bool Aabb_hit(HittableObject o, const Ray r, double t_min, double t_max, HitReco
 		t_max = fmin(t1, t_max);
 
 		if (t_min >= t_max)
+			return false;
+	}
+	return true;
+	*/
+	for (int i = 0; i < 3; i++) {
+		double invD = 1.0f / r_direction[i];
+		double t0 = (min[i] - r_origin[i]) * invD;
+		double t1 = (max[i] - r_origin[i]) * invD;
+		if (invD < 0.0f) {
+			double tmp = t0;
+			t0 = t1;
+			t1 = tmp;
+		}
+
+		t_min = t0 > t_min ? t0 : t_min;
+		t_max = t1 < t_max ? t1 : t_max;
+
+		if (t_max <= t_min)
 			return false;
 	}
 	return true;
@@ -261,8 +280,6 @@ Hittable* MakeBVHNode(Hittable* objects, size_t start, size_t end) {
 
 	return b; // this can cause a memory leak if we ever need to update the BVH, so BEWARE
 }
-
-
 
 // material types
 typedef struct {
