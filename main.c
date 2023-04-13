@@ -8,7 +8,7 @@
 #include "camera.h"
 #include "scenes.h"
 
-int samples_per_pixel = 100;
+int samples_per_pixel = 1000;
 int max_bounces = 25;
 
 Vector3 ray_color(Ray r, HittableList* world, int depth) {
@@ -83,7 +83,7 @@ int main() {
 	// make world
 	printf("making world\r\n");
 
-	HittableList world = random_scene();
+	HittableList world = sexy_scene();
 
 	printf("got world!\r\n");
 

@@ -124,4 +124,33 @@ HittableList random_scene() {
 	return world;
 }
 
+HittableList bright_light_scene() {
+	printf("generating scene...\r\n");
+	HittableList world = MakeHittableList();
+
+	int ground_material = HittableList_addMat(&world, MakeLambertian(color(0.5, 0.5, 0.5)));
+	int light = HittableList_addMat(&world, MakeEmissive(color(1.0, 1.0, 1.0), 500));
+
+	HittableList_add(&world, MakeSphere(point3(0, 0, 0), 1000, ground_material));
+	HittableList_add(&world, MakeSphere(point3(0, 0, -1), 0.5, ground_material));
+	HittableList_add(&world, MakeSphere(point3(0, 2, -1), 0.8, light));
+
+	HittableList_buildBVH(&world);
+
+	Vector3 lookfrom = vec3(3, 3, 2);
+	Vector3 lookat = vec3(0, 0, -1);
+
+	world.camera = MakeCamera(
+		lookfrom, // origin
+		lookat, // look at
+		vec3(0, 1, 0), // up
+		50, // fov
+		0, // aperture
+		Vector3Length(Vector3Subtract(lookfrom, lookat)), // we focus on the point we're looking at
+		0, // image width
+		0 // image height
+	);
+	return world;
+}
+
 #endif
